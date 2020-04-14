@@ -5,4 +5,5 @@
         "Bypass"
     ],
     "python.formatting.provider": "yapf",
+    "git.ignoreLimitWarning": true,
 }
