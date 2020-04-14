@@ -1,0 +1,24 @@
+{% extends 'portfolio/base.html' %}
+{% load static %}
+{% block content %}
+<body>
+
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+</ul>
+{% endif %}
+{% for item in items %}
+<h1>{{ item.title}}</h1>
+ {{item.price}}zł <br>
+ <img src="{{ item.img.url }}">
+ <hr>
+ <a href="{% url 'item_detail' pk=item.id %}">Zobacz szczegóły</a>
+{% endfor %}
+<body>
+
+{% endblock %}

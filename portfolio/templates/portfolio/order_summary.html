@@ -1,0 +1,98 @@
+{% extends 'portfolio/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% block content %}
+<div class="container">
+<br><br><br><br><br>
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+</ul>
+{% endif %}
+<div class="table-responsive text-nowrap">
+    <h2> Order summary</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">L.p</th>
+        <th scope="col">Item title</th>
+        <th scope="col">Price</th>
+        <th scope="col">Quantity</th>
+        <th scope="col">Total item price</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for order in orders %}
+      <tr>
+        <th scope="row">{{ forloop.counter }} </th> <!-- wylicza od jednego-->
+        <td>{{ order.item.title }}</td>
+        <td>{{ order.item.price }}</td>
+        <td><a href="{% url 'remove_from_cart_single_item' pk=order.item.id %}"><i class="fas fa-minus mr-2"></i></a>
+            {{ order.quantity }} 
+            <a href="{% url 'add_to_cart_single_item' pk=order.item.id %}"><i class="far fa-plus-square ml-2"></i></td></a>
+                    
+        <td>{{ order.get_total_item_price}}</td>
+
+      </tr>
+      {% empty %}
+      <tr>
+        <td>Your cart is empty</td>
+    </tr>
+    <tr>
+        <td colspan="5">
+        <a class='btn btn-primary float-right ml-2' href="{% url 'item_list' %}">Continiue shopping</a>
+        </td>
+    </tr>
+    {% endfor %}
+    {% if total_price.get_total %}
+    <tr>
+        <td colspan="4"><b>Order Total</b></td>
+        <td><b>{{ total_price.get_total }} zł</b></td>
+    </tr>
+    {% endif %}
+    {% if total_price.cupon %}
+     
+      <tr>
+      <td colspan="4"><b>Zniżka kuponu: {{total_price.cupon}}</b></td>
+      <td><b>{{total_price.cupon.amount}}zl</b></td> 
+    </tr>
+
+    {% endif %}
+
+
+    </tr>
+    <tr>
+        <td colspan="5">
+        <a class='btn btn-primary float-right ml-2' href="{% url 'item_list' %}">Continiue shopping</a>
+        <a class='btn btn-warning float-right' href="{% url 'checkout' %}">Proceed to checkout</a></>
+        </td>
+     <tr>
+        <form method='POST' action="{% url 'add_cupon' %}"> <!--  action wskazuje co ma sie wykonac, w tym przypadku nasza funkcja add cupon -->
+        {% csrf_token %}
+         <td colspan="4">{{ cuponform|crispy }} 
+         <button class='btn btn-danger float-right' type="submit">Dodaj kupon</button>
+         </td>
+
+
+      </tr>
+      
+        </form>
+
+
+</body>
+
+    </tbody>
+  </table>
+
+</div>
+</div>
+
+
+
+{% endblock %}

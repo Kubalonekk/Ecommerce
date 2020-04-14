@@ -1,0 +1,101 @@
+{% extends "portfolio/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<head>
+    <!-- Add meta tags for mobile and IE -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+</head>
+
+<body>
+<div class="container">
+<div class="table-responsive text-nowrap">
+    <h2> Metoda platnosci </h2>
+    <hr>
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">L.p</th>
+        <th scope="col">Item title</th>
+        <th scope="col">Price</th>
+        <th scope="col">Quantity</th>
+        <th scope="col">Total item price</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for order in orders %}
+      <tr>
+        <th scope="row">{{ forloop.counter }} </th> <!-- wylicza od jednego-->
+        <td>{{ order.item.title }}</td>
+        <td>{{ order.item.price }}</td>
+        <td><a href="{% url 'remove_from_cart_single_item' pk=order.item.id %}"><i class="fas fa-minus mr-2"></i></a>
+            {{ order.quantity }} 
+            <a href="{% url 'add_to_cart_single_item' pk=order.item.id %}"><i class="far fa-plus-square ml-2"></i></td></a>
+                    
+        <td>{{ order.get_total_item_price}}</td>
+
+      </tr>
+      {% empty %}
+      <tr>
+        <td>Your cart is empty</td>
+    </tr>
+    <tr>
+        <td colspan="5">
+        <a class='btn btn-primary float-right ml-2' href="{% url 'item_list' %}">Continiue shopping</a>
+        </td>
+    </tr>
+    {% endfor %}
+    {% if total_price.get_total %}
+    <tr>
+        <td colspan="4"><b>Order Total</b></td>
+        <td><b>{{ total_price.get_total }} zł</b></td>
+    </tr>
+    {% endif %}
+<br><br><br><br>
+<br><br>
+    <!-- Set up a container element for the button -->
+    <div id="paypal-button-container"></div>
+
+    <!-- Include the PayPal JavaScript SDK -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AW-2K1kcnwp46LfSOdgaNPtd0VAvzqFkqTXOa8uJvmUAe66q2flpOIq0gtMnd9VSRz1ueKtWPAr8POdK&currency=USD"></script>
+
+    <script>
+        // Render the PayPal button into #paypal-button-container
+        total = {{ total_price.get_total }}
+
+        paypal.Buttons({
+
+            // Set up the transaction
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: total
+                        }
+                    }]
+                });
+            },
+
+            // Finalize the transaction
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    // Show a success message to the buyer
+                    alert('Transaction completed by ' + details.payer.name.given_name + '!');
+                });
+            }
+
+
+        }).render('#paypal-button-container');
+    </script>
+  
+</div>
+<br>
+<hr>
+ <a class='btn btn-warning float-left' href="{% url 'complete_paymant' %}">Klinknij tutaj po udanej transakcji!</a></>
+</body>
+    <br><br><br><br>
+
+{% endblock %}

@@ -1,0 +1,8 @@
+{
+    "python.pythonPath": "11_env\\Scripts\\python.exe",
+    "terminal.integrated.shellArgs.windows": [
+        "-ExecutionPolicy",
+        "Bypass"
+    ],
+    "python.formatting.provider": "yapf",
+}

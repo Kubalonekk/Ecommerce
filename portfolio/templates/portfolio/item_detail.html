@@ -1,0 +1,28 @@
+{% extends 'portfolio/base.html' %}
+{% load static %}
+
+<html>
+    
+</html>
+
+{% block content %}
+<div class="container">
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<center><h1>{{ detail.title}}</h1></center>
+{{ detail.description }}<br>
+{{detail.price}} zł<br>
+<img src="{{ detail.img.url}}"><br><br>
+
+<a href="{% url 'add-to-cart' detail.id %}" class="btn btn-primary btn-md my-0 p"> Dodaj do koszyka</a>
+<a href="{% url 'remove-from-cart' detail.id %}" class="btn btn-primary btn-md my-0 p"> Usun z koszyka</a>
+</div>
+{% endblock %}
