@@ -217,7 +217,7 @@ def checkout(request):
             
                 total_price.address = qs
                 total_price.save()
-                return redirect('platnosc')
+                return redirect('podsumowanie')
             except:
                 address = Address.objects.create(
                 user=request.user, 
@@ -232,7 +232,7 @@ def checkout(request):
                 address.save()
                 total_price.address = address # total_price to zmienna do ktorej pobralismy Order na samym poczatku widoku . teraz przypisujemy do foreginkey to co stworzylismy wyzej
                 total_price.save()
-                return redirect('platnosc')
+                return redirect('podsumowanie')
             
     else:
         form = CheckoutForm()     
@@ -276,7 +276,7 @@ def get_cupon(request, code):
         return cupon
     except ObjectDoesNotExist:
         messages.info(request,"Ten kupon nie działa")
-        return redirect('order-summary')
+        return redirect('podsumowanie')
 
 
 
@@ -290,22 +290,22 @@ def add_cupon(request):
                     order = Order.objects.get(user= request.user, ordered=False)
                     if order.cupon:
                         messages.warning(request,"W koszyku moze byc aktywny tylko jeden kupon")
-                        return redirect ('order-summary')
+                        return redirect ('podsumowanie')
                     code = form.cleaned_data.get('code') # 'code' to pole które uzupelnia uzytkownik w formularz
                     try: 
                         if order.get_total() >= 200:
                             order.cupon = get_cupon(request, code) # tutaj do Order.cupon dodajemy funkcje ktora ma prametr code czyli to co wpisal uzytkownik i przechodzimy do funkcji get cupon
                             messages.success(request,"Kupon dodany prawidłowo")
                             order.save()
-                            return redirect ('order-summary')
+                            return redirect ('podsumowanie')
                         else:
                             messages.warning(request,"Aby dodać kupon twój koszyk musi mieć wartość powyżej 200 zł")
-                            return redirect('order-summary')
+                            return redirect('podsumowanie')
                     except:
-                        return redirect('order-summary')
+                        return redirect('podsumowanie')
                 except ObjectDoesNotExist:
                     messages.info(request,"Brak zamówienia")
-                    return redirect('order-summary')
+                    return redirect('podsumowanie')
     return None
 
 
@@ -345,6 +345,29 @@ def request_refund(request):
 
     return render(request, 'portfolio/refund.html', context)    
 
+
+
+def podsumowanie(request):
+
+
+    try:
+        total_price = Order.objects.get(user=request.user, ordered=False)
+    except Order.DoesNotExist:
+        messages.info(request,"Brak zamówienia")
+        return redirect("/")
+
+    try:
+        orders = OrderItem.objects.filter(user=request.user, ordered=False)
+    except ObjectDoesNotExist:
+        messages.error(request, "Nie masz aktywnego zamowienia")
+        return redirect("/")
+
+    context = {
+        'orders':orders,
+        'total_price':total_price,
+        'cuponform': CuponForm(),
+        }
+    return render(request, 'portfolio/podsumowanie.html', context)
     
 
 

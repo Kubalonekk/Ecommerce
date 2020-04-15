@@ -1,14 +1,22 @@
-{% extends "portfolio/base.html" %}
+{% extends 'portfolio/base.html' %}
 {% load static %}
 {% load crispy_forms_tags %}
 
-{% block content %}
 
-<html>
-<body>
+{% block content %}
 <div class="container">
+<br><br><br><br><br>
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+</ul>
+{% endif %}
 <div class="table-responsive text-nowrap">
-    <h2> Dane do wysyłki</h2>
+    <h2>Podsumowanie zamówienia i kupony</h2>
   <table class="table">
     <thead>
       <tr>
@@ -25,10 +33,10 @@
         <th scope="row">{{ forloop.counter }} </th> <!-- wylicza od jednego-->
         <td>{{ order.item.title }}</td>
         <td>{{ order.item.price }}</td>
-        <td><a href="{% url 'remove_from_cart_single_item' pk=order.item.id %}"><i class="fas fa-minus mr-2"></i></a>
-            {{ order.quantity }} 
-            <a href="{% url 'add_to_cart_single_item' pk=order.item.id %}"><i class="far fa-plus-square ml-2"></i></td></a>
-                    
+        <td><a>{{ order.quantity }} </a>
+   
+          
+                
         <td>{{ order.get_total_item_price}}</td>
 
       </tr>
@@ -59,16 +67,31 @@
 
 
     </tr>
-<form method="POST">
-    {% csrf_token %}
-    {{ form|crispy }}
-        <button class='btn btn-primary' type="submit">Przejdz do podsumowania</button>
- </form>
-</div>
-<br><br><br>
+    <tr>
+        <td colspan="5">
+        <a class='btn btn-warning float-right' href="{% url 'platnosc' %}">Przejdz do platnosci</a></>
+        </td>
+     <tr>
+        <form method='POST' action="{% url 'add_cupon' %}"> <!--  action wskazuje co ma sie wykonac, w tym przypadku nasza funkcja add cupon -->
+        {% csrf_token %}
+         <td colspan="4">{{ cuponform|crispy }} 
+         <button class='btn btn-danger float-right' type="submit">Dodaj kupon</button>
+         </td>
 
-</form>
+
+      </tr>
+      
+        </form>
+
 
 </body>
+
+    </tbody>
+  </table>
+
+</div>
+</div>
+
+
 
 {% endblock %}

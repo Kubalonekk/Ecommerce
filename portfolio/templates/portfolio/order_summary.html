@@ -56,14 +56,7 @@
         <td><b>{{ total_price.get_total }} zł</b></td>
     </tr>
     {% endif %}
-    {% if total_price.cupon %}
-     
-      <tr>
-      <td colspan="4"><b>Zniżka kuponu: {{total_price.cupon}}</b></td>
-      <td><b>{{total_price.cupon.amount}}zl</b></td> 
-    </tr>
-
-    {% endif %}
+    
 
 
     </tr>
@@ -72,19 +65,10 @@
         <a class='btn btn-primary float-right ml-2' href="{% url 'item_list' %}">Continiue shopping</a>
         <a class='btn btn-warning float-right' href="{% url 'checkout' %}">Proceed to checkout</a></>
         </td>
-     <tr>
-        <form method='POST' action="{% url 'add_cupon' %}"> <!--  action wskazuje co ma sie wykonac, w tym przypadku nasza funkcja add cupon -->
-        {% csrf_token %}
-         <td colspan="4">{{ cuponform|crispy }} 
-         <button class='btn btn-danger float-right' type="submit">Dodaj kupon</button>
-         </td>
-
-
-      </tr>
-      
-        </form>
-
-
+    </tr>
+    <tr>
+      <td colspan="5"><h4>Kupon można wpisać w podsumowaniu</h4></td>
+    </tr>
 </body>
 
     </tbody>
