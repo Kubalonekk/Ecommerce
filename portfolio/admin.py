@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Item, OrderItem, Order, Address, Cupon, Refund
+from .models import Item, OrderItem, Order, Address, Cupon, Refund, PrimaryCupon
 
 def make_refund_accepted(modeladmin, request, queryset):
     queryset.update(zadanie_zwrotu=False, zwrot=True) # w nawiasach podajemy co ma zrobic dana funkcja
@@ -45,4 +45,5 @@ admin.site.register(OrderItem, OrderItemAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Address)
 admin.site.register(Cupon)
+admin.site.register(PrimaryCupon)
 admin.site.register(Refund)

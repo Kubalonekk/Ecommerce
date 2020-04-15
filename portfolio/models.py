@@ -39,7 +39,7 @@ class Order(models.Model):
     ordered_date = models.DateTimeField(null=True)
     ordered = models.BooleanField(default=False)
     address = models.ForeignKey('Address', on_delete=models.CASCADE, blank=True, null=True)
-    cupon = models.ForeignKey('Cupon', on_delete=models.SET_NULL, blank=True, null=True)
+    cupon = models.ForeignKey('PrimaryCupon', on_delete=models.SET_NULL, blank=True, null=True)
     w_trakcie_dostarczania = models.BooleanField(default=False)
     odebrana = models.BooleanField(default=False)
     zadanie_zwrotu = models.BooleanField(default=False)
@@ -57,7 +57,7 @@ class Order(models.Model):
         for order_item in self.items.all(): 
             total += order_item.get_final_price()
         try:
-            total -= self.cupon.amount
+            total -= self.cupon.cupon_fk.amount
             return total
         except:
                 return total
@@ -80,8 +80,12 @@ class Address(models.Model):
         return f"Zamówienie użytkownika o nicku: {self.user.username}. Imie:{self.name}  Nazwisko:{self.second_name }" 
 
 
+class PrimaryCupon(models.Model):
+    
+    cupon_fk = models.ForeignKey("Cupon", on_delete=models.CASCADE)
 
-
+    def __str__(self):
+        return self.cupon_fk.code
     
 class Cupon(models.Model):
     code = models.CharField(max_length=15, null=True, blank=True)

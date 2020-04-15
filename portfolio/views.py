@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Item, OrderItem, Order, Address, Cupon, Refund
+from .models import Item, OrderItem, Order, Address, Cupon, Refund, PrimaryCupon
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.contrib import messages
@@ -40,7 +40,7 @@ def item_detail(request, pk):
     return render(request, 'portfolio/item_detail.html', context)
 
 
-
+@login_required(login_url='/accounts/login/')
 def OrderSummary(request):
     try:
         total_price = Order.objects.get(user=request.user, ordered=False)
@@ -123,7 +123,7 @@ def remove_from_cart(request, pk):
 
 
 
-@login_required
+@login_required(login_url='/accounts/login/')
 def add_to_cart_single_item(request, pk):
     # Ta sama funkcja co ta pierwsza tylko przekierwuje w inne miejsce
     item = get_object_or_404(Item, id=pk)
@@ -151,7 +151,7 @@ def add_to_cart_single_item(request, pk):
 
 
 
-@login_required
+@login_required(login_url='/accounts/login/')
 def remove_from_cart_single_item(request, pk):
     item = get_object_or_404(Item, id=pk)
     order_qs = Order.objects.filter(user=request.user, ordered=False) # sprawdzamy czy zamowienie juz istnieje.
@@ -179,7 +179,7 @@ def remove_from_cart_single_item(request, pk):
         return redirect('item_detail', pk)
     return redirect('order-summary')
 
-
+@login_required(login_url='/accounts/login/')
 def checkout(request):
  
     try:
@@ -243,7 +243,7 @@ def checkout(request):
     }    
     return render(request, 'portfolio/checkout.html', context)
 
-
+@login_required(login_url='/accounts/login/')
 def platnosc(request):
 
     total_price = Order.objects.get(user=request.user, ordered=False)
@@ -255,8 +255,6 @@ def platnosc(request):
             else:
                 messages.info(request,"Wartość zamówienia musi być większa niż 200 zł aby aktywować kupon")
                 return redirect('podsumowanie')
-    else:
-            return redirect ('platnosc')
         
     context = {
         'orders':orders,
@@ -264,7 +262,7 @@ def platnosc(request):
         }
 
     return render(request, 'portfolio/platnosc.html', context)
-
+@login_required(login_url='/accounts/login/')
 def complete_paymant(request):
     qs = Order.objects.get(user=request.user, ordered=False)
     qs1 = OrderItem.objects.filter(user=request.user, ordered=False)
@@ -278,11 +276,14 @@ def complete_paymant(request):
     
     return redirect('item_list')
 
-
+@login_required(login_url='/accounts/login/')
 def get_cupon(request, code):
     try:
-        cupon = Cupon.objects.get(code=code) # jesli pobierze to znaczy ze kod wpisany przez uzytkownika w formularzu jest taki sam jak ten ktory my utworzlismy za pomoca admina
-        return cupon
+        cupon = Cupon.objects.get(code=code) # jesli pobierze to znaczy ze kod wpisany przez uzytkownika w formularzu jest taki sam jak 
+        cupon_in_order = PrimaryCupon.objects.create(
+            cupon_fk=cupon
+        )
+        return cupon_in_order
     except ObjectDoesNotExist:
         messages.info(request,"Ten kupon nie działa")
         return redirect('podsumowanie')
@@ -290,7 +291,7 @@ def get_cupon(request, code):
 
 
 # trzeba ogarnac dlaczego nie moge ustawic dynamicznie wartosci od jakiegj mozna dodac
-#  do przerobenia jest szablon z checkout, poniewaz tam mozna zmieniac ilosc przedmiotów i w taki prosty sposób mozna ominąć wartosc zamowienia od jakiego bedzie dodawany kupon
+@login_required(login_url='/accounts/login/')
 def add_cupon(request):
     if request.method == 'POST':
         form = CuponForm(request.POST or None)
@@ -355,7 +356,7 @@ def request_refund(request):
     return render(request, 'portfolio/refund.html', context)    
 
 
-
+@login_required(login_url='/accounts/login/')
 def podsumowanie(request):
 
 
@@ -381,7 +382,7 @@ def podsumowanie(request):
 
 
 
-
+@login_required(login_url='/accounts/login/')
 def cupon_check(request):
 
     try:
@@ -400,7 +401,7 @@ def cupon_check(request):
         messages.info(request,"Nie masz zamówienia")
         return redirect('/')
 
-
+@login_required(login_url='/accounts/login/')
 def delete_cupon(request):
 
     order = Order.objects.get(user=request.user, ordered=False)
@@ -408,6 +409,11 @@ def delete_cupon(request):
     
     return redirect('podsumowanie')
 
+
+
+def testing(request):
+
+    return render(request, 'portfolio/testing.html')
 
 
                     
