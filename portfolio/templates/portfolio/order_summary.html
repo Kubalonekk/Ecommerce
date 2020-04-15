@@ -56,6 +56,14 @@
         <td><b>{{ total_price.get_total }} zł</b></td>
     </tr>
     {% endif %}
+    {% if total_price.cupon %}
+     
+      <tr>
+      <td colspan="4"><b>Zniżka kuponu: {{total_price.cupon}}</b></td>
+      <td><b>{{total_price.cupon.amount}}zl</b></td> 
+    </tr>
+
+    {% endif %}
     
 
 

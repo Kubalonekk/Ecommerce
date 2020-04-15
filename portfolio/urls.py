@@ -31,4 +31,7 @@ urlpatterns = [
     path('add_cupon/', views.add_cupon, name='add_cupon'),
     path('request_refund/', views.request_refund, name='request_refund'),
     path('podsumowanie/', views.podsumowanie, name='podsumowanie'),
+    path('cupon_check/', views.cupon_check, name='cupon_check'),
+    path('delete_cupon/', views.delete_cupon, name='delete_cupon'),
+
 ]

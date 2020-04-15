@@ -81,6 +81,8 @@ class Address(models.Model):
 
 
 
+
+    
 class Cupon(models.Model):
     code = models.CharField(max_length=15, null=True, blank=True)
     amount = models.FloatField(default=0)

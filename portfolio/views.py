@@ -247,8 +247,17 @@ def checkout(request):
 def platnosc(request):
 
     total_price = Order.objects.get(user=request.user, ordered=False)
-    orders = OrderItem.objects.filter(user=request.user, ordered=False)
+    orders = OrderItem.objects.filter(user=request.user, ordered=False)   
 
+    if total_price.cupon:
+            if total_price.get_total() >= 200:
+                return redirect ('platnosc')
+            else:
+                messages.info(request,"Wartość zamówienia musi być większa niż 200 zł aby aktywować kupon")
+                return redirect('podsumowanie')
+    else:
+            return redirect ('platnosc')
+        
     context = {
         'orders':orders,
         'total_price':total_price,
@@ -373,4 +382,33 @@ def podsumowanie(request):
 
 
 
+def cupon_check(request):
 
+    try:
+        order = Order.objects.get(user= request.user, ordered=False)
+        
+        if order.cupon:
+            if order.get_total() >= 200:
+                return redirect ('platnosc')
+            else:
+                messages.info(request,"Wartość zamówienia musi być większa niż 200 zł aby aktywować kupon")
+                return redirect('podsumowanie')
+        else:
+            return redirect ('platnosc')
+
+    except ObjectDoesNotExist:
+        messages.info(request,"Nie masz zamówienia")
+        return redirect('/')
+
+
+def delete_cupon(request):
+
+    order = Order.objects.get(user=request.user, ordered=False)
+    order.cupon.delete()
+    
+    return redirect('podsumowanie')
+
+
+
+                    
+                
