@@ -58,8 +58,8 @@
     {% endif %}
     {% if total_price.cupon %}
      
-      <tr>
-      <td colspan="4"><b>Zniżka kuponu: {{total_price.cupon}} <a href="{% url 'delete_cupon' %}">-</a></b></td>
+      <tr>                                                    
+      <td colspan="4"><b>Zniżka kuponu: {{total_price.cupon}} <a href="{% url 'delete_cupon' %}"><i class="fas fa-minus mr-2"></i></a></b></td>
       <td><b>{{total_price.cupon.cupon_fk.amount}}zl</b></td> 
     </tr>
 

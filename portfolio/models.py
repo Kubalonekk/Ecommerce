@@ -54,7 +54,7 @@ class Order(models.Model):
     def get_total(self):
         # ustawiamy zmienna total na zero pozniej robimy petle w polu many to many field aby dodac wszystko do siebie
         total = 0
-        for order_item in self.items.all(): 
+        for order_item in self.items.all():  #.all poniewaz robimy petle w polu manytomany
             total += order_item.get_final_price()
         try:
             total -= self.cupon.cupon_fk.amount

@@ -181,7 +181,18 @@ def remove_from_cart_single_item(request, pk):
 
 @login_required(login_url='/accounts/login/')
 def checkout(request):
- 
+
+    total_price = Order.objects.get(user=request.user, ordered=False)
+    if total_price.cupon:
+            if total_price.get_total() >= 200:
+                pass
+            else:
+                messages.info(request,"Wartość zamówienia musi być większa niż 200 zł aby aktywować kupon")
+                return redirect('order-summary')
+    else:
+        pass
+    
+    
     try:
         total_price = Order.objects.get(user=request.user, ordered=False)
     except Order.DoesNotExist:
@@ -247,15 +258,25 @@ def checkout(request):
 def platnosc(request):
 
     total_price = Order.objects.get(user=request.user, ordered=False)
-    orders = OrderItem.objects.filter(user=request.user, ordered=False)   
+    orders = OrderItem.objects.filter(user=request.user, ordered=False)
+
+    if total_price.address:
+        pass
+    else:
+         messages.info(request,"Aby przejść do tej strony musisz mieć uzupełniony Adres dostawy")
+         return redirect('checkout')
+
 
     if total_price.cupon:
             if total_price.get_total() >= 200:
-                return redirect ('platnosc')
+                pass
             else:
                 messages.info(request,"Wartość zamówienia musi być większa niż 200 zł aby aktywować kupon")
                 return redirect('podsumowanie')
-        
+    else:
+        pass 
+
+
     context = {
         'orders':orders,
         'total_price':total_price,
@@ -406,8 +427,18 @@ def delete_cupon(request):
 
     order = Order.objects.get(user=request.user, ordered=False)
     order.cupon.delete()
+    messages.info(request,"Pomyślnie usunięto kupon")
     
     return redirect('podsumowanie')
+
+def delete_cupon_order(request):
+
+    order = Order.objects.get(user=request.user, ordered=False)
+    order.cupon.delete()
+    messages.info(request,"Pomyślnie usunięto kupon")
+    
+    return redirect('order-summary')
+
 
 
 
