@@ -2,11 +2,24 @@ from django.db import models
 from django.conf import settings
 
 
+rozmiarowka = [
+    ('S', 'S'),
+    ('M', 'M'),
+    ('L', 'L'),
+    ('XL', 'XL'),
+    ('XXL', 'XXL'),
+]
+
 class Item(models.Model):
     title = models.CharField(max_length=100)
     price = models.FloatField()
     img = models.ImageField(null=True)
     description = models.TextField(null=True)
+    dostepna_ilosc_s = models.IntegerField(null=True, default=0, blank=True)
+    dostepna_ilosc_m = models.IntegerField(null=True, default=0, blank=True)
+    dostepna_ilosc_l = models.IntegerField(null=True, default=0, blank=True)
+    dostepna_ilosc_xl = models.IntegerField(null=True, default=0, blank=True)
+    dostepna_ilosc_xxl = models.IntegerField(null=True, default=0, blank=True)
   
 
     def __str__(self):
@@ -18,6 +31,7 @@ class OrderItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
     ordered = models.BooleanField(default=False)
+    rozmiar = models.CharField(max_length=3, choices = rozmiarowka, null=True)
 
     def __str__(self):
         return  f"{self.quantity} of {self.item.title}"  # przy pomocy f mozemy łączyc i dodawac wyniki

@@ -20,6 +20,13 @@
 <center><h1>{{ detail.title}}</h1></center>
 {{ detail.description }}<br>
 {{detail.price}} zł<br>
+
+<form method = "POST">
+    {% csrf_token %}
+    {{form }} 
+</form> 
+
+
 <img src="{{ detail.img.url}}"><br><br>
 
 <a href="{% url 'add-to-cart' detail.id %}" class="btn btn-primary btn-md my-0 p"> Dodaj do koszyka</a>

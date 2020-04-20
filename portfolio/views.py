@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
-from .forms import CheckoutForm, CuponForm, RefundForm
+from .forms import CheckoutForm, CuponForm, RefundForm , RozmiarForm
 import random
 import string
 
@@ -32,9 +32,15 @@ def item_list(request):
 def item_detail(request, pk):
 
     detail = Item.objects.get(id=pk)
+    order = Order.objects.get(user = request.user, ordered=False)
+    orderitem = Order.objects.get(user = request.user, ordered=False)
+
+
+    
 
     context = {
         'detail': detail,
+        'form': RozmiarForm(),
     }
 
     return render(request, 'portfolio/item_detail.html', context)
@@ -448,4 +454,6 @@ def testing(request):
 
 
                     
-                
+def index(request):
+
+    return render(request, 'shop/index.html')

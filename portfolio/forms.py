@@ -1,5 +1,5 @@
 from django import forms
-from .models import Cupon
+from .models import Cupon, OrderItem
 from django.forms import ModelForm
 
 class CheckoutForm(forms.Form):
@@ -21,5 +21,11 @@ class RefundForm(forms.Form):
     wiadomosc = forms.CharField(widget=forms.Textarea)
     email = forms.EmailField()
 
+class RozmiarForm(forms.ModelForm):
+    class Meta:
+        model = OrderItem
+        fields = [
+            'rozmiar'
+        ]
     
   

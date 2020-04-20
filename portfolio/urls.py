@@ -18,6 +18,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('index/', views.index, name='index'),
     path('', views.item_list, name='item_list'),
     path('item/<int:pk>/', views.item_detail, name="item_detail"),
     path('add-to-cart/<int:pk>/', views.add_to_cart, name="add-to-cart"),
