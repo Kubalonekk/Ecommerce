@@ -2,28 +2,37 @@ from django.db import models
 from django.conf import settings
 
 
-rozmiarowka = [
-    ('S', 'S'),
-    ('M', 'M'),
-    ('L', 'L'),
-    ('XL', 'XL'),
-    ('XXL', 'XXL'),
-]
+
 
 class Item(models.Model):
     title = models.CharField(max_length=100)
     price = models.FloatField()
     img = models.ImageField(null=True)
     description = models.TextField(null=True)
-    dostepna_ilosc_s = models.IntegerField(null=True, default=0, blank=True)
-    dostepna_ilosc_m = models.IntegerField(null=True, default=0, blank=True)
-    dostepna_ilosc_l = models.IntegerField(null=True, default=0, blank=True)
-    dostepna_ilosc_xl = models.IntegerField(null=True, default=0, blank=True)
-    dostepna_ilosc_xxl = models.IntegerField(null=True, default=0, blank=True)
-  
+    size = models.BooleanField(default=False, help_text='Jesli przedmiot posiada rozmiarowke lub inny wariant zaznacz pole')
+    ilosc = models.IntegerField(null=True, blank=True, help_text='Jesli przedmiot nie posiada rozmiarowki lub innego wariantu, prosze podac tutaj ilosc')
 
     def __str__(self):
-        return self.title
+        return f"{self.title}"
+
+class ItemWariant2(models.Model):
+    itemwariant = models.ForeignKey("ItemWariant", on_delete=models.CASCADE, null=True)
+    title = models.CharField(max_length=100, null=True)
+    ilosc = models.IntegerField(null=True)
+
+    def __str__(self):
+        return f"{self.itemwariant}  {self.title}"
+
+    
+
+class ItemWariant(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, null=True)
+    title = models.CharField(max_length=100, null=True)
+    ilosc = models.IntegerField(null=True)
+    kolejnosc = models.IntegerField(null=True, blank=True, help_text="Kolejnosc w ktorej sortowane beda rozmiary, a nastepnie wyswietlone na stronie. Zaczynamy od S = 1, m = 2 i tak dalej")
+
+    def __str__(self):
+        return f"{self.item} {self.title}"
 
 
 class OrderItem(models.Model):
@@ -31,10 +40,11 @@ class OrderItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
     ordered = models.BooleanField(default=False)
-    rozmiar = models.CharField(max_length=3, choices = rozmiarowka, null=True)
+    rozmiar = models.CharField(max_length=500, null=True, blank=True)
+    
 
     def __str__(self):
-        return  f"{self.quantity} of {self.item.title}"  # przy pomocy f mozemy łączyc i dodawac wyniki
+        return  f"{self.quantity} x {self.item.title} {self.rozmiar}"  # przy pomocy f mozemy łączyc i dodawac wyniki
 
     def get_total_item_price(self):
         return self.quantity * self.item.price    # ilosc mnozymy przez cene ( jest to cena calosci za dany produkt, czyli jak mam rower kupujemy dwie sztuki to policzy nam rower * 2 a nie calosc zamowienia)

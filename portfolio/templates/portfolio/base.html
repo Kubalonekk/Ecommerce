@@ -39,7 +39,7 @@
     <a> Witaj, {{request.user}}
     </span>
        <span class="navbar-text">
-       <a class="nav-link" href="{% url 'order-summary' %}">Ilość przedmiotów w koszyku: {{ request.user|cart_item_count }}  <span class="sr-only">(current)</span></a>
+       <a class="nav-link" href="{% url 'order-summary' %}"><i class="fas fa-shopping-cart"></i>  {{ request.user|cart_item_count }}  <span class="sr-only">(current)</span></a>
     </span>
     <span class="navbar-text">
     

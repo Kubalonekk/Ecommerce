@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Item, OrderItem, Order, Address, Cupon, Refund, PrimaryCupon
+from .models import Item, OrderItem, Order, Address, Cupon, Refund, PrimaryCupon, ItemWariant, ItemWariant2
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.contrib import messages
@@ -9,6 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from .forms import CheckoutForm, CuponForm, RefundForm , RozmiarForm
 import random
+from django.db.models import Q
 import string
 
 
@@ -32,18 +33,24 @@ def item_list(request):
 def item_detail(request, pk):
 
     detail = Item.objects.get(id=pk)
-    order = Order.objects.get(user = request.user, ordered=False)
-    orderitem = Order.objects.get(user = request.user, ordered=False)
+    xde = ItemWariant.objects.filter(item=detail)
+    elo = ItemWariant2.objects.filter(itemwariant__in=xde)
+    wariant_detail = detail.itemwariant_set.filter(item=detail).order_by('kolejnosc')
+    form = RozmiarForm()
+    form.fields['rozmiar'].queryset = ItemWariant.objects.filter(Q(item=detail) & ~Q(ilosc=False))
 
 
-    
 
     context = {
+        'wariant_detail':wariant_detail,
+        'elo':elo,
+        'xde':xde,
         'detail': detail,
-        'form': RozmiarForm(),
+        'form': form,
     }
 
     return render(request, 'portfolio/item_detail.html', context)
+
 
 
 @login_required(login_url='/accounts/login/')
@@ -68,37 +75,99 @@ def OrderSummary(request):
         return redirect("/")
 
 
-
+        
+def rozmiar(request, pk):
+    item = get_object_or_404(Item, id=pk)
+    if request.method == 'POST':
+        form = RozmiarForm(request.POST)
+        form.fields['rozmiar'].queryset = ItemWariant.objects.filter(item=item) # w forms.py queryset pobiera all a my potzebujemy sortowac za pomoca zmiennej item
+        if form.is_valid():
+            rozmiar = form.cleaned_data.get('rozmiar')
+            rozmiar = rozmiar.title
+            print(rozmiar)
+            return rozmiar
+    else:
+        form = RozmiarForm()
+        form.fields['rozmiar'].queryset = ItemWariant.objects.filter(item=item, ilosc__isnull=True)
+        return redirect('rozmiar',pk)
 
 
 @login_required(login_url='/accounts/login/')
 def add_to_cart(request, pk):
     item = get_object_or_404(Item, id=pk)
-    order_item, created = OrderItem.objects.get_or_create(
-        item=item,
-        user=request.user,
-        ordered=False,
-    ) # tworzymy OrderItem przypisujemy item pobrany wyzej, uzytkownika ktory jest wlasnie zalogowany a takze ustawiamy Ordered false
+    if item.size == True:
+        func = rozmiar(request, pk)
+        qs_ilosc = item.itemwariant_set.get(item=item, title=func)
+        if qs_ilosc.ilosc <= 0:
+            messages.info(request,"Przepraszam, przedmiot aktualnie jest niedostępny")
+            return redirect('item_detail', pk)
+        else:
+            pass
+        order_item, created = OrderItem.objects.get_or_create(
+                    item=item,
+                    user=request.user,
+                    ordered=False,
+                    rozmiar = func,
+                    ) # tworzymy OrderItem przypisujemy item pobrany wyzej, uzytkownika ktory jest wlasnie zalogowany a takze ustawiamy Ordered false
+        if created:
+            qs = item.itemwariant_set.get(item=item, title=func)
+            qs.ilosc -= 1
+            qs.save()
+        else:
+            pass
+        order_qs = Order.objects.filter(user=request.user, ordered=False) # sprawdzamy czy zamowienie juz istnieje.
+    else:
+        if item.ilosc <= 0:
+            messages.info(request,"Przepraszam, przedmiot aktualnie jest niedostępny")
+            return redirect('item_detail', pk)
+        else:
+            pass
+        order_item, created = OrderItem.objects.get_or_create(
+                    item=item,
+                    user=request.user,
+                    ordered=False,
+                    ) # tworzymy OrderItem przypisujemy item pobrany wyzej, uzytkownika ktory jest wlasnie zalogowany a takze ustawiamy Ordered false
+        if created:
+            item.ilosc -= 1
+            item.save()
+        else:
+            pass
     order_qs = Order.objects.filter(user=request.user, ordered=False) # sprawdzamy czy zamowienie juz istnieje.
     if order_qs.exists(): # jesli istnieje do przypisujemy je do zmiennej order
         order = order_qs[0] # pobranie pierwszego wyinku czyli zamowienia
-        if order.items.filter(item__id=item.id).exists(): # sprawdzenie czy w  OrderItem  jest juz przedmiot ktory bedziemy dodawawc ponownie po to aby po wcisnieciu przycisu dodaj do koszyka, zwiekszyla sie ilosc
-            order_item.quantity += 1 # dodanie kolejnego zamowienia
-            order_item.save()
-            messages.info(request,"Ilosc przedmiotow zostala zwiekszona")
+        if item.size == True:
+            if order.items.filter(item__id=item.id, rozmiar=func).exists(): # sprawdzenie czy w  OrderItem  jest juz przedmiot ktory bedziemy dodawawc ponownie po to aby po wcisnieciu przycisu dodaj do koszyka, zwiekszyla sie ilosc
+                order_item.quantity += 1 # dodanie kolejnego zamowienia
+                qs = item.itemwariant_set.get(item=item, title=func)
+                qs.ilosc -= 1
+                qs.save()
+                order_item.save()
+                messages.info(request,"Ilosc przedmiotow zostala zwiekszona")
+            else:
+                order.items.add(order_item)
+                messages.info(request,"Przedmiot zostal dodany do koszyka")
         else:
-            order.items.add(order_item)
-            messages.info(request,"Przedmiot zostal dodany do koszyka")
+            if order.items.filter(item__id=item.id).exists(): # sprawdzenie czy w  OrderItem  jest juz przedmiot ktory bedziemy dodawawc ponownie po to aby po wcisnieciu przycisu dodaj do koszyka, zwiekszyla sie ilosc
+                order_item.quantity += 1 # dodanie kolejnego zamowienia
+                item.ilosc -= 1
+                item.save()
+                order_item.save()
+                messages.info(request,"Ilosc przedmiotow zostala zwiekszona")
+            else:
+                order.items.add(order_item)
+                messages.info(request,"Przedmiot zostal dodany do koszyka")
     else: # jesli nie istnieje to tworzymy nowe zamowienie
         ordered_date = timezone.now()
         order = Order.objects.create(user=request.user, ordered_date=ordered_date)
         order.items.add(order_item)
         messages.info(request,"Przedmiot zostal dodany do koszyka")
+        return redirect('item_detail', pk)
+        
     return redirect('item_detail', pk)
 
 
 @login_required(login_url='/accounts/login/')
-def remove_from_cart(request, pk):
+def remove_from_cart(request, pk): # ta funckcje prawdopodbnie usune
     item = get_object_or_404(Item, id=pk)
     order_qs = Order.objects.filter(user=request.user, ordered=False) # sprawdzamy czy zamowienie juz istnieje.
     if order_qs.exists(): # sprawdzamy czy zamowienie juz istnieje.
@@ -129,20 +198,28 @@ def remove_from_cart(request, pk):
 
 
 
+
+
+
+
 @login_required(login_url='/accounts/login/')
-def add_to_cart_single_item(request, pk):
-    # Ta sama funkcja co ta pierwsza tylko przekierwuje w inne miejsce
+def add_to_cart_single_item(request, pk): 
     item = get_object_or_404(Item, id=pk)
+    if item.size == True:
+         messages.info(request, "Wybierz rozmiar koszulki który chcesz dodać")
+         return redirect('item_detail', pk)
+    else:
+        pass
     order_item, created = OrderItem.objects.get_or_create(
-        item=item,
-        user=request.user,
-        ordered=False,
-    ) # tworzymy OrderItem przypisujemy item pobrany wyzej, uzytkownika ktory jest wlasnie zalogowany a takze ustawiamy Ordered false
+                item=item,
+                user=request.user,
+                ordered=False,
+                ) # tworzymy OrderItem przypisujemy item pobrany wyzej, uzytkownika ktory jest wlasnie zalogowany a takze ustawiamy Ordered false
     order_qs = Order.objects.filter(user=request.user, ordered=False) # sprawdzamy czy zamowienie juz istnieje.
     if order_qs.exists(): # jesli istnieje do przypisujemy je do zmiennej order
         order = order_qs[0] # pobranie pierwszego wyinku czyli zamowienia
         if order.items.filter(item__id=item.id).exists(): # sprawdzenie czy w  OrderItem  jest juz przedmiot ktory bedziemy dodawawc ponownie po to aby po wcisnieciu przycisu dodaj do koszyka, zwiekszyla sie ilosc
-            order_item.quantity += 1 # zwiekszenie ilosci
+            order_item.quantity += 1 # dodanie kolejnego zamowienia         
             order_item.save()
             messages.info(request,"Ilosc przedmiotow zostala zwiekszona")
         else:
@@ -153,7 +230,9 @@ def add_to_cart_single_item(request, pk):
         order = Order.objects.create(user=request.user, ordered_date=ordered_date)
         order.items.add(order_item)
         messages.info(request,"Przedmiot zostal dodany do koszyka")
+        return redirect('order-summary')
     return redirect('order-summary')
+    
 
 
 
@@ -163,6 +242,11 @@ def remove_from_cart_single_item(request, pk):
     order_qs = Order.objects.filter(user=request.user, ordered=False) # sprawdzamy czy zamowienie juz istnieje.
     if order_qs.exists(): # sprawdzamy czy zamowienie juz istnieje.
         order = order_qs[0] # pobranie pierwszego wyinku czyli zamowienia
+        if item.size == True:
+            messages.info(request,"Wybierz rozmiar do usunięcia")
+            return redirect('delete_item', pk=pk)
+        else:
+            pass
         if order.items.filter(item__id=item.id).exists(): # sprawdzenie czy w koszyku mam przedmioty do usuniecia
             order_item = OrderItem.objects.filter(  # 
                 item=item,
@@ -170,11 +254,15 @@ def remove_from_cart_single_item(request, pk):
                 ordered=False,
             )[0] # zero do pobranie tego obiektu
             if order_item.quantity > 1:
+                item.ilosc += 1
+                item.save()
                 order_item.quantity -= 1
                 order_item.save()
             else:
                 order_item.delete()
-            messages.info(request,"Przedmiot zostal usuniety z koszyka")
+                item.ilosc += 1
+                item.save()
+                messages.info(request,"Przedmiot zostal usuniety z koszyka")
         else:
             messages.info(request, "Brak przedmiotów do usuniecia")
             # brak przedmiotow do usuniecia
@@ -184,6 +272,61 @@ def remove_from_cart_single_item(request, pk):
         # brak zamowien w ktorym mozna usunac przedmioty
         return redirect('item_detail', pk)
     return redirect('order-summary')
+
+def delete_item(request, pk):
+    item = Item.objects.get(id=pk)
+    wariant_detail = item.itemwariant_set.filter(item=item).order_by('kolejnosc')
+    if request.method == 'POST':
+        form = RozmiarForm(request.POST)
+        form.fields['rozmiar'].queryset = item.orderitem_set.filter(item=item, user=request.user)
+        if form.is_valid():
+            rozmiar = form.cleaned_data.get('rozmiar')
+            rozmiar = rozmiar.rozmiar
+            print(rozmiar)
+            order_qs = Order.objects.filter(user=request.user, ordered=False)
+            if order_qs.exists():
+                order = order_qs[0]
+                if order.items.filter(item__id=item.id, rozmiar=rozmiar).exists():
+                    order_item = OrderItem.objects.filter(
+                        item=item,
+                        rozmiar=rozmiar,
+                        user=request.user,
+                        ordered=False,
+                    )[0]
+                    qs = item.itemwariant_set.get(item=item, title=rozmiar)
+                    if order_item.quantity > 1:
+                        order_item.quantity -= 1
+                        qs.ilosc += 1
+                        qs.save()
+                        order_item.save()
+                        messages.info(request,"Ilość przedmiotów została zmniejszona")
+
+                    else:
+                        order_item.delete()
+                        qs.ilosc += 1
+                        qs.save()
+                        messages.info(request,"Przedmiot zostal usuniety z koszyka")
+                        return redirect('order-summary')
+                else:
+                    messages.info(request,"Brak przedmiotów do usunięcia")
+            else:
+                messages.info(request, "Brak przedmiotów do usuniecia")
+                return redirect('item_detail', pk)            
+        else:
+            pass
+    else:
+        form = RozmiarForm()
+        form.fields['rozmiar'].queryset = item.orderitem_set.filter(item=item, user=request.user)
+
+    
+    
+
+    context = {
+        'wariant_detail':wariant_detail,
+        'form':form,
+        'detail':item,
+    }
+    return render(request, 'portfolio/delete_item.html', context)
 
 @login_required(login_url='/accounts/login/')
 def checkout(request):

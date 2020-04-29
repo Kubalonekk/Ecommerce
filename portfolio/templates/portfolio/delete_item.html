@@ -3,11 +3,9 @@
 {% load crispy_forms_tags %}
 
 
-<html>
-    
-</html>
-
 {% block content %}
+
+
 <div class="container">
 {% if messages %}
 <ul class="messages">
@@ -26,7 +24,6 @@
             <img width= 500px; src="{{ detail.img.url}}" class="img-thumbnail" ><br><br>
         </div>
         <div class="col-md-6">
-        
 
             <h3 class="text-center"></h3>
                 <p>{{ detail.description }}</p>
@@ -45,47 +42,22 @@
                 {% endfor %}
                 {% else %}
                 <p><strong>Dostępna ilość</strong></p>
-                {% if detail.ilosc > 30  %}
                 <p class="btn btn-info">Dużo</p>
-                {% elif detail.ilosc < 10 and detail.ilosc != 0 %}
-                 <p class="btn btn-secondary">Resztki</p>
-                {% elif detail.ilosc  == 0 %}
-                <p class="btn btn-dark">Brak</p>
-                {% else %}
-                <p class="btn btn-info">Mało</p>
-                {% endif %}
-                
                 {% endif %}
 
         </div>
         
    </div>
-  
-
-{% comment %} <div class="d-flex flex-wrap align-content-start">
-<div class="d-flex flex-column">
-<center><h1>{{ detail.title}}</h1></center>                                       
-{{ detail.description }}<br>
-{{detail.price}} zł<br>
-<img width= 500px; src="{{ detail.img.url}}" class="img-thumbnail" ><br><br>
-</div> {% endcomment %}
 
 
-{% if detail.size == True %}
-<form method="POST" action="{% url 'add-to-cart' detail.id %}">
+<h2>Wybierz rozmiar który chcesz usunąć</h2>
+<form method="POST">
 {% csrf_token %}
 <div class="form-row">
       <div class="form-group col-md-6 mb-0">
         {{ form.rozmiar|as_crispy_field}}
       </div>
 </div>
-<button class="btn btn-primary btn-md my-0 p" type='submit'>Dodaj do koszyka</button>
+<button class="btn btn-primary btn-md my-0 p" type='submit'>Usuń z koszyka</button>
 </form>
-{% else %}
-<a href="{% url 'add-to-cart' detail.id %}" class="btn btn-primary btn-md my-0 p"> Dodaj do koszyka</a>
-{% endif %} 
-
-
-
-
 {% endblock %}

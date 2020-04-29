@@ -1,5 +1,5 @@
 from django import forms
-from .models import Cupon, OrderItem
+from .models import Cupon, OrderItem, ItemWariant, ItemWariant2
 from django.forms import ModelForm
 
 class CheckoutForm(forms.Form):
@@ -21,11 +21,10 @@ class RefundForm(forms.Form):
     wiadomosc = forms.CharField(widget=forms.Textarea)
     email = forms.EmailField()
 
-class RozmiarForm(forms.ModelForm):
-    class Meta:
-        model = OrderItem
-        fields = [
-            'rozmiar'
-        ]
+class RozmiarForm(forms.Form):
     
-  
+    rozmiar = forms.ModelChoiceField(empty_label="Wybierz swój rozmiar", queryset=ItemWariant.objects.all())
+    # kolor = forms.ModelChoiceField(queryset=ItemWariant2.objects.all())
+    
+        
+

@@ -31,7 +31,7 @@
     {% for order in orders %}
       <tr>
         <th scope="row">{{ forloop.counter }} </th> <!-- wylicza od jednego-->
-        <td>{{ order.item.title }}</td>
+        <td><a href="{% url 'item_detail' order.item.id %}"> {{ order.item.title }}</a> {{order.get_rozmiar_display}} </td>
         <td>{{ order.item.price }}</td>
         <td><a>{{ order.quantity }} </a>
    

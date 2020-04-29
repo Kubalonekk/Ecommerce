@@ -5,6 +5,7 @@
 
 {% block content %}
 <div class="container">
+
 <br><br><br><br><br>
 {% if messages %}
 <ul class="messages">
@@ -29,9 +30,14 @@
     </thead>
     <tbody>
     {% for order in orders %}
+     
       <tr>
         <th scope="row">{{ forloop.counter }} </th> <!-- wylicza od jednego-->
-        <td>{{ order.item.title }}</td>
+        {% if order.item.size == True %}
+        <td><a href="{% url 'item_detail' order.item.id %}"> {{ order.item.title }}</a> {{ order.rozmiar }}</td>
+        {% else %}
+        <td><a href="{% url 'item_detail' order.item.id %}"> {{ order.item.title }}</a></td>
+        {% endif %}
         <td>{{ order.item.price }}</td>
         <td><a href="{% url 'remove_from_cart_single_item' pk=order.item.id %}"><i class="fas fa-minus mr-2"></i></a>
             {{ order.quantity }} 

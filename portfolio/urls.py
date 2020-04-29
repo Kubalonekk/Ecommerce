@@ -22,7 +22,7 @@ urlpatterns = [
     path('', views.item_list, name='item_list'),
     path('item/<int:pk>/', views.item_detail, name="item_detail"),
     path('add-to-cart/<int:pk>/', views.add_to_cart, name="add-to-cart"),
-    path('remove-from-cart/<int:pk>/', views.remove_from_cart, name="remove-from-cart"),
+    # path('remove-from-cart/<int:pk>/', views.remove_from_cart, name="remove-from-cart"),
     path('order-summary/', views.OrderSummary, name="order-summary"),
     path('add_to_cart_single_item/<int:pk>/', views.add_to_cart_single_item, name="add_to_cart_single_item"),
     path('remove_from_cart_single_item/<int:pk>/', views.remove_from_cart_single_item, name="remove_from_cart_single_item"),
@@ -36,5 +36,6 @@ urlpatterns = [
     path('delete_cupon/', views.delete_cupon, name='delete_cupon'),
     path('testing/', views.testing, name='testing'),
     path('delete_cupon_order/', views.delete_cupon_order, name='delete_cupon_order'),
-
+    path('rozmiar/<int:pk>/', views.rozmiar, name='rozmiar'),
+    path('delete_item/<int:pk>/', views.delete_item, name='delete_item'),
 ]
