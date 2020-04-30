@@ -221,6 +221,8 @@ def add_to_cart_single_item(request, pk):
         if order.items.filter(item__id=item.id).exists(): # sprawdzenie czy w  OrderItem  jest juz przedmiot ktory bedziemy dodawawc ponownie po to aby po wcisnieciu przycisu dodaj do koszyka, zwiekszyla sie ilosc
             order_item.quantity += 1 # dodanie kolejnego zamowienia         
             order_item.save()
+            item.ilosc -= 1
+            item.save()
             messages.info(request,"Ilosc przedmiotow zostala zwiekszona")
         else:
             order.items.add(order_item)
@@ -275,7 +277,7 @@ def remove_from_cart_single_item(request, pk):
 
 def delete_item(request, pk):
     item = Item.objects.get(id=pk)
-    wariant_detail = item.itemwariant_set.filter(item=item).order_by('kolejnosc')
+    wariant_detail = item.itemwariant_set.filter(item=item).order_by('kolejnosc') # sluzy tylko i wylacznie do wyswietlenia rozmiarow w odpowiedniej kolejnosci
     if request.method == 'POST':
         form = RozmiarForm(request.POST)
         form.fields['rozmiar'].queryset = item.orderitem_set.filter(item=item, user=request.user)
@@ -316,7 +318,7 @@ def delete_item(request, pk):
             pass
     else:
         form = RozmiarForm()
-        form.fields['rozmiar'].queryset = item.orderitem_set.filter(item=item, user=request.user)
+        form.fields['rozmiar'].queryset = item.orderitem_set.filter(item=item, user=request.user, ordered=False)
 
     
     

@@ -84,7 +84,7 @@ class Order(models.Model):
             total -= self.cupon.cupon_fk.amount
             return total
         except:
-                return total
+            return total
 
         
      
