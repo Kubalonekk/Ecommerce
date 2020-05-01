@@ -27,4 +27,6 @@ class RozmiarForm(forms.Form):
     # kolor = forms.ModelChoiceField(queryset=ItemWariant2.objects.all())
     
         
-
+        
+class IloscForm(forms.Form):
+    ilosc = forms.IntegerField()

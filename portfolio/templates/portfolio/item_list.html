@@ -20,34 +20,23 @@
     </div>
     {% endfor %}
 {% endif %}
-</ul>
-<body>
-	<div class="container">
-		<h1 class="text-center">Sukowski Handel</h1>
-		<hr>
+	<div class="row">
+		{% for item in items %}
+		<div class="col-lg-4">
+			<img class="thumbnail" src="{{item.img.url}}">
+			<div class="box-element product">
+				<h6><strong>{{item.title}}</strong></h6>
+				<hr>
 
-		<div class="row">
-			{% for item in items %}
-			<div class="col-md-4 product-grid">
-				<div class="image">
-					<a href="#">
-						<img  src="{{ item.img.url}}" class="img-thumbnail" ><br><br>
-						<div class="overlay">
-							<div class="detail">View Details</div>
-						</div>
-					</a>
-				</div>
-				<h5 class="text-center">{{ item.title}}</h5>
-				<h5 class="text-center">Price: {{item.price}}</h5>
-				<a href="{% url 'item_detail' pk=item.id %}" class="btn btn-primary btn-md my-0 p">Szczegóły</a>
+				<a  href="{% url 'add_to_cart_single_item' pk=item.id %}" class="btn btn-outline-secondary add-btn update-cart">Add to Cart</a>
+				
+				<a class="btn btn-outline-success" href="{% url 'item_detail' item.id %}">View</a> 
+				<h4 style="display: inline-block; float: right"><strong>${{item.price}}</strong></h4>
+
 			</div>
-            {% endfor %}
-{% endblock %}
-{% comment %} 
-{% for item in items %}
-<h1>{{ item.title}}</h1>
- {{item.price}}zł <br>
- <img src="{{ item.img.url }}">
- <hr>
- <a href="{% url 'item_detail' pk=item.id %}">Zobacz szczegóły</a>
-{% endfor %} {% endcomment %}
+		</div>
+		{% endfor %}
+	</div>
+
+{% endblock content %}
+

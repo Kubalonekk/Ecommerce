@@ -79,13 +79,25 @@
 {% csrf_token %}
 <div class="form-row">
       <div class="form-group col-md-6 mb-0">
-        {{ form.rozmiar|as_crispy_field}}
+        {{ form.rozmiar|as_crispy_field}}  
+      </div>
+      <div class="form-group col-md-2 mb-0">
+      {{ iloscform.ilosc|as_crispy_field}}
+      </div>
+</div>
+
+<button class="btn btn-primary btn-md my-0 p" type='submit'>Dodaj do koszyka</button>
+</form>
+{% else %}
+<form method="POST" action="{% url 'add-to-cart' detail.id %}">
+{% csrf_token %}
+<div class="form-row">
+      <div class="form-group col-md-2 mb-0">
+      {{ iloscform.ilosc|as_crispy_field}}
       </div>
 </div>
 <button class="btn btn-primary btn-md my-0 p" type='submit'>Dodaj do koszyka</button>
 </form>
-{% else %}
-<a href="{% url 'add-to-cart' detail.id %}" class="btn btn-primary btn-md my-0 p"> Dodaj do koszyka</a>
 {% endif %} 
 
 

@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from . import views
+from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
     path('index/', views.index, name='index'),
@@ -38,4 +39,13 @@ urlpatterns = [
     path('delete_cupon_order/', views.delete_cupon_order, name='delete_cupon_order'),
     path('rozmiar/<int:pk>/', views.rozmiar, name='rozmiar'),
     path('delete_item/<int:pk>/', views.delete_item, name='delete_item'),
+    
+]
+
+
+# REST API paths
+
+urlpatterns += [
+    path('itemview/', views.ItemView.as_view(), name='test'),
+    path('api/token/', obtain_auth_token, name='obtain-token'), # przy pomocy tego mozemy stworzyc token dostepu
 ]

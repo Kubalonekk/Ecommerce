@@ -7,11 +7,60 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
-from .forms import CheckoutForm, CuponForm, RefundForm , RozmiarForm
+from .forms import CheckoutForm, CuponForm, RefundForm , RozmiarForm, IloscForm
+import string
 import random
 from django.db.models import Q
-import string
 
+# REST API imports
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .serializers import ItemSerializer
+from rest_framework import generics
+from rest_framework import mixins
+
+#REST API
+
+
+class ItemView(
+    mixins.ListModelMixin, # odpowiada za liste
+    mixins.CreateModelMixin, # odpowiada za tworzenie
+    generics.GenericAPIView):
+    serializer_class = ItemSerializer
+    queryset = Item.objects.all()
+
+    def get(self, request, *args, **kwargs): 
+        return self.list(request, *args, **kwargs) # list poprostu pokaze nam wyniki
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs) # create stworzy nowa instancje
+
+
+
+
+# class TestView(APIView):
+
+#     permission_classes = (IsAuthenticated,)
+
+#     def get(self, request, *args, **kwargs): # get tak jak w formularzach sluzy do odczytywania danych
+#         qs = Item.objects.all()
+#         serializer = ItemSerializer(qs, many=True) # many=True poniewaz wyniekiem qs bedzie kilka obiektow
+#         return Response(serializer.data)
+
+#     def post(self, request, *args, **kwargs):
+#         serializer = ItemSerializer(data=request.data)
+#         if serializer.is_valid(): # sprawdzamy czy jest prawidlowy
+#             serializer.save()
+#             return Response(serializer.data)
+#         else:
+#             return Response(serializer.errors)
+        
+
+
+
+
+#Czesc z kodem DJANGO + Python
 
 def create_ref_code():
     #tworzy losowy kod znaków
@@ -33,20 +82,22 @@ def item_list(request):
 def item_detail(request, pk):
 
     detail = Item.objects.get(id=pk)
-    xde = ItemWariant.objects.filter(item=detail)
-    elo = ItemWariant2.objects.filter(itemwariant__in=xde)
+    # xde = ItemWariant.objects.filter(item=detail)
+    # elo = ItemWariant2.objects.filter(itemwariant__in=xde)
     wariant_detail = detail.itemwariant_set.filter(item=detail).order_by('kolejnosc')
     form = RozmiarForm()
-    form.fields['rozmiar'].queryset = ItemWariant.objects.filter(Q(item=detail) & ~Q(ilosc=False))
-
+    form.fields['rozmiar'].queryset = ItemWariant.objects.filter(Q(item=detail) & ~Q(ilosc=False)).order_by('kolejnosc') # ten Q object ogranicza tylko do wyswietlana tych co istnieja
+    iloscform = IloscForm()
+    iloscform.fields['ilosc'].initial = 1
 
 
     context = {
         'wariant_detail':wariant_detail,
-        'elo':elo,
-        'xde':xde,
+        # 'elo':elo,
+        # 'xde':xde,
         'detail': detail,
         'form': form,
+        'iloscform':iloscform,
     }
 
     return render(request, 'portfolio/item_detail.html', context)
@@ -62,7 +113,7 @@ def OrderSummary(request):
         return redirect("/")
 
     try:
-        orders = OrderItem.objects.filter(user=request.user, ordered=False)
+        orders = OrderItem.objects.filter(user=request.user, ordered=False).order_by('item')
         context = {
         'orders':orders,
         'total_price':total_price,
@@ -88,8 +139,20 @@ def rozmiar(request, pk):
             return rozmiar
     else:
         form = RozmiarForm()
-        form.fields['rozmiar'].queryset = ItemWariant.objects.filter(item=item, ilosc__isnull=True)
+        form.fields['rozmiar'].queryset = ItemWariant.objects.filter(item=item)
         return redirect('rozmiar',pk)
+
+
+def ilosc(request):
+    if request.method == 'POST':
+        iloscform = IloscForm(request.POST)
+        if iloscform.is_valid():
+            ilosc = iloscform.cleaned_data.get('ilosc')
+            return ilosc
+        else:
+            messages.error(request, "Niepoprawnie uzupełniony")
+    else:
+        iloscform = IloscForm()
 
 
 @login_required(login_url='/accounts/login/')
@@ -110,15 +173,25 @@ def add_to_cart(request, pk):
                     rozmiar = func,
                     ) # tworzymy OrderItem przypisujemy item pobrany wyzej, uzytkownika ktory jest wlasnie zalogowany a takze ustawiamy Ordered false
         if created:
-            qs = item.itemwariant_set.get(item=item, title=func)
-            qs.ilosc -= 1
+            qs = item.itemwariant_set.get(item=item, title=func) 
+            qs.ilosc -= ilosc(request)
+            if qs.ilosc < 0:
+                messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
+                order_item.delete()
+                return redirect('item_detail',pk )
+            else:
+                pass
+            order_item.quantity = ilosc(request)
+            order_item.save()
             qs.save()
         else:
+            # order_item.quantity = ilosc(request)
+            # order_item.save()
             pass
         order_qs = Order.objects.filter(user=request.user, ordered=False) # sprawdzamy czy zamowienie juz istnieje.
     else:
         if item.ilosc <= 0:
-            messages.info(request,"Przepraszam, przedmiot aktualnie jest niedostępny")
+            messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
             return redirect('item_detail', pk)
         else:
             pass
@@ -128,19 +201,33 @@ def add_to_cart(request, pk):
                     ordered=False,
                     ) # tworzymy OrderItem przypisujemy item pobrany wyzej, uzytkownika ktory jest wlasnie zalogowany a takze ustawiamy Ordered false
         if created:
-            item.ilosc -= 1
+            item.ilosc -= ilosc(request)
+            if item.ilosc < 0:
+                messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
+                order_item.delete()
+                return redirect('item_detail',pk )
             item.save()
+            order_item.quantity = ilosc(request)
+            order_item.save()
+            
         else:
+            # order_item.quantity = ilosc(request)
+            # order_item.save()
             pass
     order_qs = Order.objects.filter(user=request.user, ordered=False) # sprawdzamy czy zamowienie juz istnieje.
     if order_qs.exists(): # jesli istnieje do przypisujemy je do zmiennej order
         order = order_qs[0] # pobranie pierwszego wyinku czyli zamowienia
         if item.size == True:
-            if order.items.filter(item__id=item.id, rozmiar=func).exists(): # sprawdzenie czy w  OrderItem  jest juz przedmiot ktory bedziemy dodawawc ponownie po to aby po wcisnieciu przycisu dodaj do koszyka, zwiekszyla sie ilosc
-                order_item.quantity += 1 # dodanie kolejnego zamowienia
+            if order.items.filter(item__id=item.id, rozmiar=func).exists(): # sprawdzenie czy w  OrderItem  jest juz przedmiot ktory bedziemy dodawawc ponownie po to aby po wcisnieciu przycisu dodaj do koszyka, zwiekszyla sie ilosc 
                 qs = item.itemwariant_set.get(item=item, title=func)
-                qs.ilosc -= 1
+                qs.ilosc -= ilosc(request)
+                if qs.ilosc < 0:
+                    messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
+                    return redirect('item_detail',pk )
+                else:
+                    pass
                 qs.save()
+                order_item.quantity += ilosc(request)  
                 order_item.save()
                 messages.info(request,"Ilosc przedmiotow zostala zwiekszona")
             else:
@@ -148,8 +235,13 @@ def add_to_cart(request, pk):
                 messages.info(request,"Przedmiot zostal dodany do koszyka")
         else:
             if order.items.filter(item__id=item.id).exists(): # sprawdzenie czy w  OrderItem  jest juz przedmiot ktory bedziemy dodawawc ponownie po to aby po wcisnieciu przycisu dodaj do koszyka, zwiekszyla sie ilosc
-                order_item.quantity += 1 # dodanie kolejnego zamowienia
-                item.ilosc -= 1
+                item.ilosc -= ilosc(request)
+                if item.ilosc <= 0:
+                    messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
+                    return redirect('item_detail', pk)
+                else:
+                    pass
+                order_item.quantity += ilosc(request) # dodanie kolejnego zamowienia
                 item.save()
                 order_item.save()
                 messages.info(request,"Ilosc przedmiotow zostala zwiekszona")
@@ -162,7 +254,8 @@ def add_to_cart(request, pk):
         order.items.add(order_item)
         messages.info(request,"Przedmiot zostal dodany do koszyka")
         return redirect('item_detail', pk)
-        
+    
+    
     return redirect('item_detail', pk)
 
 
@@ -280,7 +373,7 @@ def delete_item(request, pk):
     wariant_detail = item.itemwariant_set.filter(item=item).order_by('kolejnosc') # sluzy tylko i wylacznie do wyswietlenia rozmiarow w odpowiedniej kolejnosci
     if request.method == 'POST':
         form = RozmiarForm(request.POST)
-        form.fields['rozmiar'].queryset = item.orderitem_set.filter(item=item, user=request.user)
+        form.fields['rozmiar'].queryset = item.orderitem_set.filter(item=item, user=request.user, ordered=False)
         if form.is_valid():
             rozmiar = form.cleaned_data.get('rozmiar')
             rozmiar = rozmiar.rozmiar
