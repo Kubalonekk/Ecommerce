@@ -10,7 +10,7 @@ class CheckoutForm(forms.Form):
     kod_pocztowy = forms.CharField(max_length=5, widget=forms.TextInput(attrs={'placeholder': 'Podaj kod pocztowy bez -'}))
     miejscowosc = forms.CharField(max_length=150)
     email = forms.EmailField()
-    phone_number = forms.IntegerField()
+    # phone_number = forms.IntegerField()
 
 
 class CuponForm(forms.Form):

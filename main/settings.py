@@ -150,9 +150,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 
 # Extra places for collectstatic to find static files.
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-)
+# STATICFILES_DIRS = (
+#     os.path.join(BASE_DIR, 'static'),
+# )
 
 
 STATIC_URL = '/static/'
@@ -165,7 +165,8 @@ LOGIN_URL = '/login_alert/'
 #  ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images')
-STATIC_ROOT = "/home/myusername/myproject/static"
+STATIC_ROOT = "/Users/kuba1/OneDrive/Pulpit/portfolio/static/"
+
 
 
 
