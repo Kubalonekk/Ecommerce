@@ -152,7 +152,7 @@ LOGIN_URL = '/login_alert/'
 #  ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images')
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_ROOT = "/home/myusername/myproject/static"
 
 
 
