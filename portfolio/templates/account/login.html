@@ -42,6 +42,7 @@ for a {{ site_name }} account and sign in below:{% endblocktrans %}</p>
 
 <div class="container">
 
+
 <form class="form-signin" method="POST" action="{% url 'account_login' %}">
   <h2> Sign in </h2>
   {% csrf_token %}

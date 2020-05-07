@@ -1,11 +1,10 @@
 {% extends 'portfolio/base.html' %}
 {% load static %}
 {% load crispy_forms_tags %}
-
-
 <html>
-    
-</html>
+<head>
+
+</head>
 
 
 
@@ -22,11 +21,16 @@
 </ul>
 {% endif %}
 
+
 <div class="container">
    <h1 class="text-center">{{ detail.title}}</h1>
    <div class="row text-center">
         <div class="col-md-6">
-            <img width= 500px; src="{{ detail.img.url}}" class="img-thumbnail" ><br><br>
+            <div class="view overlay zoom">
+                <img src="{{detail.img.url}}" class="img-fluid " alt="zoom">
+                   <div class="mask flex-center waves-effect waves-light">
+                    </div>
+            </div>
         </div>
         <div class="col-md-6">
         
@@ -43,7 +47,7 @@
                 {% elif wariant.ilosc  == 0 %}
                 <p class="btn btn-dark">{{wariant.title}}<br>Brak</p>
                 {% else %}
-                <p class="btn btn-info">{{wariant.title}}<br>Mało</p>
+                <p class="btn btn-warning">{{wariant.title}}<br>Mało</p>
                 {% endif %}
                 {% endfor %}
                 {% else %}
@@ -60,10 +64,35 @@
                 
                 {% endif %}
 
-        </div>
-        
+                <h4>Ocena według kupujących</h4>
+                {% for key, value in ocena.items %}
+                {% if value >= 1 and value < 1.5 %}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% elif value >= 1.5 and value < 2 %}
+                <i class="fas fa-star fa-2x amber-text pr-3"></i> <i class="fas fa-star-half-alt fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% elif value >= 2  and value < 2.5 %}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% elif value >= 2.5  and value < 3 %}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star-half-alt fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% elif value >= 3 and value < 3.5%}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% elif value >= 3.5 and value < 4%}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star-half-alt fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% elif value >= 4 and value < 4.5%}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% elif value >= 4.5 and value < 5 %}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star-half-alt fa-2x amber-text pr-3"></i></a>
+                {% elif value == 5 %}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i></a>
+                {% else %}
+                Brak oceny<br>
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% endif %} 
+                {% endfor %}
+                <a href="{% url 'item_detail_comments' detail.id %}"><p><small>Pokaż komentarze({{comments}})</small></p></a>
+        </div> 
    </div>
-  
+  </div>
 
 {% comment %} <div class="d-flex flex-wrap align-content-start">
 <div class="d-flex flex-column">
@@ -100,6 +129,11 @@
 </form>
 {% endif %} 
 
+
+
+
+</div>
+</div>
 
 
 

@@ -1,0 +1,90 @@
+{% extends 'portfolio/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="container">
+
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+</ul>
+{% endif %}
+<br><BR>
+
+<div class="table-responsive text-nowrap">
+    <h2> Zamówienie</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">L.p</th>
+        <th scope="col">Użytkownik</th>
+        <th scope="col">W trakcie realizacji</th>
+        <th scope="col">W trakcie dostarczania</th>
+        <th scope="col">Dostarczona</th>
+        <th scope="col">Data zamówienia</th>
+        <th scope="col">Ref code</th>
+        
+      </tr>
+    </thead>
+    <tbody>
+  
+     
+      <tr>
+        <th scope="row">1 </th> <!-- wylicza od jednego-->
+        <td><a href=""> {{ order.user }}</a></td>
+        {% if order.zamowienie_w_realizacji == False %}
+        <td><i class="fas fa-times fa-2x red-text"></i></td>
+        {% else %}
+        <td><i class="fas fa-check fa-2x green-text"></i></td>
+        {% endif %}
+        {% if order.w_trakcie_dostarczania == False %}
+       <td><i class="fas fa-times fa-2x red-text"></i></td>
+        {% else %}
+        <td><i class="fas fa-check fa-2x green-text"></i></td>
+        {% endif %}
+        {% if order.odebrana == False %}
+        <td><i class="fas fa-times fa-2x red-text"></i></td>
+        {% else %}
+        <td><i class="fas fa-check fa-2x green-text"></i></td>
+        {% endif %}
+        <td>{{ order.start_date}}</td>
+        <td>{{ order.ref_code}}</td>
+  
+
+      </tr>
+      </tbody>
+
+  <div class="table-responsive text-nowrap">
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">L.p</th>
+        <th scope="col">Nazwa przedmiotu</th>
+        <th scope="col">Ilość</th>
+        <th scope="col">Rozmiar</th>
+      </tr>
+    </thead>
+  
+  <tbody>
+    {% for product in order.items.all %}
+      <tr>
+        <th scope="row">{{ forloop.counter }}</th> <!-- wylicza od jednego-->
+        <th scope="row"><a href="{% url 'item_detail' product.item.id %}"> {{product.item.title }}</a></th>
+        <th scope="row">{{product.quantity}}</th>
+        {% if product.rozmiar == None %}
+        <th scope="row">-----</th>
+        {% else %}
+        <th scope="row">{{product.rozmiar}}</th>
+        {% endif %}
+
+    {% endfor %}
+
+
+{% endblock %}

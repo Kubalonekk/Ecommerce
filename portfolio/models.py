@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from phone_field import PhoneField
 
 
 
@@ -11,6 +12,7 @@ class Item(models.Model):
     description = models.TextField(null=True)
     size = models.BooleanField(default=False, help_text='Jesli przedmiot posiada rozmiarowke lub inny wariant zaznacz pole')
     ilosc = models.IntegerField(null=True, blank=True, help_text='Jesli przedmiot nie posiada rozmiarowki lub innego wariantu, prosze podac tutaj ilosc')
+    kategoria = models.ForeignKey("Kategoria", on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return f"{self.title}"
@@ -61,9 +63,10 @@ class Order(models.Model):
     items=models.ManyToManyField(OrderItem)
     start_date = models.DateTimeField(null=True, auto_now_add=True)
     ordered_date = models.DateTimeField(null=True)
-    ordered = models.BooleanField(default=False)
+    ordered = models.BooleanField(default=False, help_text='Jeśli zaznaczone na TAK, zamówienie zostało opłacone')
     address = models.ForeignKey('Address', on_delete=models.CASCADE, blank=True, null=True)
     cupon = models.ForeignKey('PrimaryCupon', on_delete=models.SET_NULL, blank=True, null=True)
+    zamowienie_w_realizacji = models.BooleanField(default=False)
     w_trakcie_dostarczania = models.BooleanField(default=False)
     odebrana = models.BooleanField(default=False)
     zadanie_zwrotu = models.BooleanField(default=False)
@@ -98,7 +101,7 @@ class Address(models.Model):
     kod_pocztowy = models.CharField(max_length=100)
     miejscowosc = models.CharField(max_length=150)
     email = models.EmailField()
-    phone_number = models.IntegerField()
+    phone_number = models.IntegerField(null=True)
 
     def __str__(self):
         return f"Zamówienie użytkownika o nicku: {self.user.username}. Imie:{self.name}  Nazwisko:{self.second_name }" 
@@ -127,3 +130,35 @@ class Refund(models.Model):
 
     def __str__(self):
         return f" ID: {self.pk} {self.order}"
+
+
+
+
+class Ocena(models.Model):
+    OCENA = (
+        ('', 'Oceń produkt'),
+        (1,'1'),
+        (2,'2'),
+        (3,'3'),
+        (4,'4'),
+        (5,'5'),
+    )
+
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    ocena = models.IntegerField(choices=OCENA)
+    content = models.TextField(null=True, blank=True)
+    time = models.DateTimeField(auto_now_add=True, null=True)
+    potwierdzona = models.BooleanField(default=False, help_text='Ustawi się na Tak jeśli oceniany przedmiot bedzie opłacony przez użytkownika')
+
+    def __str__(self):
+        return f" {self.user} dodal ocene: {self.ocena} przedmiotowi: {self.item}"
+
+
+
+class Kategoria(models.Model):
+    title = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.title

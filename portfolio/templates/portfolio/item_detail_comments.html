@@ -1,0 +1,180 @@
+{% extends 'portfolio/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+<html>
+<head>
+
+</head>
+
+
+
+{% block content %}
+<div class="container">
+
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+</ul>
+{% endif %}
+
+
+<div class="container">
+<br>
+   <h1 class="text-center">{{ detail.title}}</h1>
+   <div class="row text-center">
+        <div class="col-md-6">
+            <div class="view overlay zoom">
+                <img src="{{detail.img.url}}" class="img-fluid " alt="zoom">
+                   <div class="mask flex-center waves-effect waves-light">
+                    </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+        
+
+            <h3 class="text-center"></h3>
+                <p>{{ detail.description }}</p>
+                {% if detail.size == True %}
+                <p><strong>Dostępne rozmiary</strong></p>
+                {% for wariant in wariant_detail %}
+                {% if wariant.ilosc > 30  %}
+                <p class="btn btn-info">{{wariant.title}}<br>Dużo</p>
+                {% elif wariant.ilosc < 10 and wariant.ilosc != 0 %}
+                 <p class="btn btn-secondary">{{wariant.title}}<br>Resztki</p>
+                {% elif wariant.ilosc  == 0 %}
+                <p class="btn btn-dark">{{wariant.title}}<br>Brak</p>
+                {% else %}
+                <p class="btn btn-warning">{{wariant.title}}<br>Mało</p>
+                {% endif %}
+                {% endfor %}
+                {% else %}
+                <p><strong>Dostępna ilość</strong></p>
+                {% if detail.ilosc > 30  %}
+                <p class="btn btn-info">Dużo</p>
+                {% elif detail.ilosc < 10 and detail.ilosc != 0 %}
+                 <p class="btn btn-secondary">Resztki</p>
+                {% elif detail.ilosc  == 0 %}
+                <p class="btn btn-dark">Brak</p>
+                {% else %}
+                <p class="btn btn-info">Mało</p>
+                {% endif %}
+                
+                {% endif %}
+
+                <h4>Ocena według kupujących</h4>
+                {% for key, value in ocena.items %}
+                {% if value >= 1 and value < 1.5 %}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% elif value >= 1.5 and value < 2 %}
+                <i class="fas fa-star fa-2x amber-text pr-3"></i> <i class="fas fa-star-half-alt fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% elif value >= 2  and value < 2.5 %}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% elif value >= 2.5  and value < 3 %}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star-half-alt fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% elif value >= 3 and value < 3.5%}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% elif value >= 3.5 and value < 4%}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star-half-alt fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% elif value >= 4 and value < 4.5%}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% elif value >= 4.5 and value < 5 %}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star-half-alt fa-2x amber-text pr-3"></i></a>
+                {% elif value == 5 %}
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i><i class="fas fa-star fa-2x amber-text pr-3"></i></a>
+                {% else %}
+                Brak oceny<br>
+                <a href="{% url 'ocena_produktu' detail.id %}"><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i><i class="far fa-star fa-2x amber-text pr-3"></i></a>
+                {% endif %} 
+                {% endfor %}
+                <a href="{% url 'item_detail' detail.id %}"><p><small>Zwiń komentarze</small></p></a>
+        </div> 
+   </div>
+  </div>
+
+{% comment %} <div class="d-flex flex-wrap align-content-start">
+<div class="d-flex flex-column">
+<center><h1>{{ detail.title}}</h1></center>                                       
+{{ detail.description }}<br>
+{{detail.price}} zł<br>
+<img width= 500px; src="{{ detail.img.url}}" class="img-thumbnail" ><br><br>
+</div> {% endcomment %}
+
+
+{% if detail.size == True %}
+<form method="POST" action="{% url 'add-to-cart' detail.id %}">
+{% csrf_token %}
+<div class="form-row">
+      <div class="form-group col-md-6 mb-0">
+        {{ form.rozmiar|as_crispy_field}}  
+      </div>
+      <div class="form-group col-md-2 mb-0">
+      {{ iloscform.ilosc|as_crispy_field}}
+      </div>
+</div>
+
+<button class="btn btn-primary btn-md my-0 p" type='submit'>Dodaj do koszyka</button>
+</form>
+{% else %}
+<form method="POST" action="{% url 'add-to-cart' detail.id %}">
+{% csrf_token %}
+<div class="form-row">
+      <div class="form-group col-md-2 mb-0">
+      {{ iloscform.ilosc|as_crispy_field}}
+      </div>
+</div>
+<button class="btn btn-primary btn-md my-0 p" type='submit'>Dodaj do koszyka</button>
+</form>
+{% endif %} 
+
+
+
+
+<section class="my-5">
+
+    
+    {% for comment in comments %}
+  <!-- Card header -->
+  <div class="card-header border-0 font-weight-bold d-flex justify-content-between">
+    <ul class="list-unstyled list-inline mb-0">
+        {% if comment.potwierdzona == True %}
+        <a class="text-success">Użytkownik zakupił ten przedmiot</a>
+        {% else %}
+        <a class="text-dark">Użytkownik nie zakupił tego przedmiotu</a>
+        {% endif %}
+      <li class="list-inline-item "></i></li>
+    </ul>
+    {% if comment.user == request.user %}
+    <div class="text-right"><a href="{% url 'edit_ocena_produktu' detail.id comment.id %}"><i class="fas fa-edit indigo-text pr-3"></i></a><a href="{% url 'delete_comment' detail.id comment.id %}"><i class="fas fa-trash red-text pr-3"></i></a></div>
+    {% else %}
+    {% endif %}
+  </div>
+
+  <div class="media mt-4 px-1">
+    <img class=" card-img-100 rounded-circle z-depth-1-half d-flex mr-3" src="{% static 'images/user.png'  %}"
+      alt="Generic placeholder image">
+    <div class="media-body">
+      <h5 class="font-weight-bold mt-0">
+        <a href="">{{ comment.user }}</a>
+      </h5>
+      {{ comment.content }}
+      <footer class="blockquote-footer mb-3"><small>{{ comment.time }}</small></footer>
+    </div>
+  </div>
+    <br>
+    {% empty %}
+    <center><h3>Brak komentarzy</h3></center>
+    {% endfor %}
+</section>
+<!--Section: Author Box-->
+
+
+</div>
+</div>
+
+
+
+{% endblock %}

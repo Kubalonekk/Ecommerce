@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Item, OrderItem, Order, Address, Cupon, Refund, PrimaryCupon, ItemWariant, ItemWariant2
+from .models import Item, OrderItem, Order, Address, Cupon, Refund, PrimaryCupon, ItemWariant, ItemWariant2, Ocena
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.contrib import messages
@@ -7,10 +7,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
-from .forms import CheckoutForm, CuponForm, RefundForm , RozmiarForm, IloscForm
+from .forms import CheckoutForm, CuponForm, RefundForm , RozmiarForm, IloscForm, OcenaForm
 import string
 import random
 from django.db.models import Q
+from .filters import ItemFilter
+from django.db.models import Sum, Count, Avg
 
 # REST API imports
 from rest_framework.permissions import IsAuthenticated
@@ -69,10 +71,14 @@ def create_ref_code():
 
 def item_list(request):
 
-    items = Item.objects.all()
+    items = Item.objects.all().order_by('title')
+    MyFilter = ItemFilter(request.GET, queryset=items)
+    items = MyFilter.qs
+    
 
     context = {
         'items': items,
+        'MyFilter': MyFilter,
     }
 
     return render(request, 'portfolio/item_list.html', context)
@@ -89,6 +95,13 @@ def item_detail(request, pk):
     form.fields['rozmiar'].queryset = ItemWariant.objects.filter(Q(item=detail) & ~Q(ilosc=False)).order_by('kolejnosc') # ten Q object ogranicza tylko do wyswietlana tych co istnieja
     iloscform = IloscForm()
     iloscform.fields['ilosc'].initial = 1
+    ocena = Ocena.objects.filter(item=detail).aggregate(Avg('ocena'))
+    comments = Ocena.objects.filter(item=detail).count()
+    print(ocena)
+
+    
+
+
 
 
     context = {
@@ -98,6 +111,8 @@ def item_detail(request, pk):
         'detail': detail,
         'form': form,
         'iloscform':iloscform,
+        'ocena':ocena,
+        'comments':comments,
     }
 
     return render(request, 'portfolio/item_detail.html', context)
@@ -148,6 +163,10 @@ def ilosc(request):
         iloscform = IloscForm(request.POST)
         if iloscform.is_valid():
             ilosc = iloscform.cleaned_data.get('ilosc')
+            if ilosc <= 0:
+                return redirect('item_list')
+            else:
+                pass
             return ilosc
         else:
             messages.error(request, "Niepoprawnie uzupełniony")
@@ -173,8 +192,13 @@ def add_to_cart(request, pk):
                     rozmiar = func,
                     ) # tworzymy OrderItem przypisujemy item pobrany wyzej, uzytkownika ktory jest wlasnie zalogowany a takze ustawiamy Ordered false
         if created:
-            qs = item.itemwariant_set.get(item=item, title=func) 
-            qs.ilosc -= ilosc(request)
+            qs = item.itemwariant_set.get(item=item, title=func)
+            try:    
+                qs.ilosc -= ilosc(request)
+            except:
+                messages.info(request, "Ilosc nie może być wartością ujemną")
+                order_item.delete()
+                return redirect('item_detail', pk)
             if qs.ilosc < 0:
                 messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
                 order_item.delete()
@@ -201,7 +225,12 @@ def add_to_cart(request, pk):
                     ordered=False,
                     ) # tworzymy OrderItem przypisujemy item pobrany wyzej, uzytkownika ktory jest wlasnie zalogowany a takze ustawiamy Ordered false
         if created:
-            item.ilosc -= ilosc(request)
+            try:    
+                item.ilosc -= ilosc(request)
+            except:
+                messages.info(request, "Ilosc nie może być wartością ujemną")
+                order_item.delete()
+                return redirect('item_detail', pk)
             if item.ilosc < 0:
                 messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
                 order_item.delete()
@@ -220,7 +249,11 @@ def add_to_cart(request, pk):
         if item.size == True:
             if order.items.filter(item__id=item.id, rozmiar=func).exists(): # sprawdzenie czy w  OrderItem  jest juz przedmiot ktory bedziemy dodawawc ponownie po to aby po wcisnieciu przycisu dodaj do koszyka, zwiekszyla sie ilosc 
                 qs = item.itemwariant_set.get(item=item, title=func)
-                qs.ilosc -= ilosc(request)
+                try:    
+                    qs.ilosc -= ilosc(request)
+                except:
+                    messages.info(request, "Ilosc nie może być wartością ujemną")
+                    return redirect('item_detail', pk) 
                 if qs.ilosc < 0:
                     messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
                     return redirect('item_detail',pk )
@@ -235,7 +268,11 @@ def add_to_cart(request, pk):
                 messages.info(request,"Przedmiot zostal dodany do koszyka")
         else:
             if order.items.filter(item__id=item.id).exists(): # sprawdzenie czy w  OrderItem  jest juz przedmiot ktory bedziemy dodawawc ponownie po to aby po wcisnieciu przycisu dodaj do koszyka, zwiekszyla sie ilosc
-                item.ilosc -= ilosc(request)
+                try:
+                    item.ilosc -= ilosc(request)
+                except:
+                    messages.info(request, "Ilosc nie może być wartością ujemną")
+                    return redirect('item_detail', pk) 
                 if item.ilosc <= 0:
                     messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
                     return redirect('item_detail', pk)
@@ -299,7 +336,7 @@ def remove_from_cart(request, pk): # ta funckcje prawdopodbnie usune
 def add_to_cart_single_item(request, pk): 
     item = get_object_or_404(Item, id=pk)
     if item.size == True:
-         messages.info(request, "Wybierz rozmiar koszulki który chcesz dodać")
+         messages.info(request, "Wybierz rozmiar który chcesz dodać do koszyka")
          return redirect('item_detail', pk)
     else:
         pass
@@ -308,6 +345,11 @@ def add_to_cart_single_item(request, pk):
                 user=request.user,
                 ordered=False,
                 ) # tworzymy OrderItem przypisujemy item pobrany wyzej, uzytkownika ktory jest wlasnie zalogowany a takze ustawiamy Ordered false
+    if created:
+        item.ilosc -= 1
+        item.save()
+    else:
+        pass
     order_qs = Order.objects.filter(user=request.user, ordered=False) # sprawdzamy czy zamowienie juz istnieje.
     if order_qs.exists(): # jesli istnieje do przypisujemy je do zmiennej order
         order = order_qs[0] # pobranie pierwszego wyinku czyli zamowienia
@@ -533,6 +575,7 @@ def complete_paymant(request):
     qs1 = OrderItem.objects.filter(user=request.user, ordered=False)
     qs.ref_code = create_ref_code() # w tym miejscu wykorzystujemy funkcje create ref code ktora jest napisana wyzej do przypisania losowych liczb
     qs.ordered = True
+    qs.zamowienie_w_realizacji = True
     qs.save()
     for q in qs1:
         q.ordered = True
@@ -684,14 +727,127 @@ def delete_cupon_order(request):
     return redirect('order-summary')
 
 
+@login_required(login_url='/accounts/login/')
+def ocena_produktu(request, pk):
+    item = Item.objects.get(id=pk)
+
+    try:
+        qs = Ocena.objects.get(item=item, user=request.user)
+        return redirect('edit_ocena_produktu', pk=item.id, id=qs.id)
+    except:
+        if request.method == "POST":
+            form = OcenaForm(request.POST)
+            if form.is_valid():
+                ocena = form.save(commit=False)
+                ocena.item = item
+                ocena.user = request.user
+                if OrderItem.objects.filter(item=item, user=request.user , ordered=True).exists():
+                    ocena.potwierdzona = True
+                else:
+                    pass
+                ocena.save()
+                messages.info(request,"Twoja opinia została dodana pozytywnie")
+                return redirect('item_detail_comments', pk)
+            else:
+                messages.info(request,"Formularz zawiera błędy, musisz go poprawić")
+        else:
+            form = OcenaForm()
+
+    context = {
+        'form':form,
+        'item':item,
+    }
+
+    return render(request, 'portfolio/ocena_produktu.html', context)
 
 
-def testing(request):
+    
+def edit_ocena_produktu(request, pk, id):
 
-    return render(request, 'portfolio/testing.html')
+    item = Item.objects.get(id=pk)
+    qs = Ocena.objects.get(item=item, user=request.user)
+    
+    if request.method == "POST":
+        form = OcenaForm(data=request.POST, instance=qs)
+        if form.is_valid():
+            if OrderItem.objects.filter(item=item, user=request.user , ordered=True).exists():
+                    ocena.potwierdzona = True
+            else:
+                pass
+            form.save()
+            messages.info(request,"Poprawnie edytowano opinie")
+            return redirect('item_detail_comments', pk)
+        else:
+            messages.info(request,"Formularz zawiera błędy, musisz go poprawić")
+    else:
+        form = OcenaForm(instance=qs)
+
+    
+    context = {
+        'form':form,
+    }
+
+    return render(request, 'portfolio/edit_ocena_produktu.html', context)
+
+@login_required(login_url='/accounts/login/')
+def zamowienia(request):
+    orders = Order.objects.filter(user=request.user, ordered=True)
+
+    context = {
+        'orders':orders,
+    }
+
+    return render(request, 'portfolio/zamowienia.html', context)
+
+def zamowienia_detail(request, pk):
+    order = Order.objects.get(id=pk)
 
 
-                    
-def index(request):
+    context = {
+        'order':order,
 
-    return render(request, 'shop/index.html')
+    }
+
+    return render(request, 'portfolio/zamowienia_detail.html', context)
+
+
+
+
+
+def item_detail_comments(request, pk):
+
+    detail = Item.objects.get(id=pk)
+    comments = Ocena.objects.filter(item=detail).order_by('-time')
+    comments_counter = comments.count()
+    wariant_detail = detail.itemwariant_set.filter(item=detail).order_by('kolejnosc')
+    form = RozmiarForm()
+    form.fields['rozmiar'].queryset = ItemWariant.objects.filter(Q(item=detail) & ~Q(ilosc=False)).order_by('kolejnosc') # ten Q object ogranicza tylko do wyswietlana tych co istnieja
+    iloscform = IloscForm()
+    iloscform.fields['ilosc'].initial = 1
+    ocena = Ocena.objects.filter(item=detail).aggregate(Avg('ocena'))
+    print(ocena)
+    print(comments_counter)
+        
+    
+    
+
+
+
+    context = {
+        'wariant_detail':wariant_detail,
+        'detail': detail,
+        'form': form,
+        'iloscform':iloscform,
+        'ocena':ocena,
+        'comments':comments,
+        'comments_counter':comments_counter,
+    }
+
+    return render(request, 'portfolio/item_detail_comments.html', context)
+
+def delete_comment(request, pk, id):
+    ocena = Ocena.objects.get(id=id)
+    ocena.delete()
+    messages.info(request,"Komentarz wraz z oceną został usunięty")
+    return redirect('item_detail_comments', pk)
+

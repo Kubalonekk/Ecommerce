@@ -19,7 +19,7 @@ from . import views
 from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
-    path('index/', views.index, name='index'),
+    # path('index/', views.index, name='index'),
     path('', views.item_list, name='item_list'),
     path('item/<int:pk>/', views.item_detail, name="item_detail"),
     path('add-to-cart/<int:pk>/', views.add_to_cart, name="add-to-cart"),
@@ -35,11 +35,16 @@ urlpatterns = [
     path('podsumowanie/', views.podsumowanie, name='podsumowanie'),
     path('cupon_check/', views.cupon_check, name='cupon_check'),
     path('delete_cupon/', views.delete_cupon, name='delete_cupon'),
-    path('testing/', views.testing, name='testing'),
+    # path('testing/', views.testing, name='testing'),
     path('delete_cupon_order/', views.delete_cupon_order, name='delete_cupon_order'),
     path('rozmiar/<int:pk>/', views.rozmiar, name='rozmiar'),
     path('delete_item/<int:pk>/', views.delete_item, name='delete_item'),
-    
+    path('ocena_produktu/<int:pk>/', views.ocena_produktu, name='ocena_produktu'),
+    path('edit_ocena_produktu/<int:pk>/<int:id>/', views.edit_ocena_produktu, name='edit_ocena_produktu'),
+    path('zamowienia', views.zamowienia, name="zamowienia"),
+    path('zamowienia/<int:pk>/', views.zamowienia_detail, name='zamowienia_detail'),
+    path('item/<int:pk>/comments/', views.item_detail_comments, name='item_detail_comments'),
+    path('delete_comment/<int:pk>/<int:id>/', views.delete_comment, name='delete_comment'),
 ]
 
 
