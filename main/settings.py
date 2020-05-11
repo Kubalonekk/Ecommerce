@@ -24,9 +24,9 @@ SECRET_KEY = 'p7%tfn8d&svddibibc%oa_ghfb)=grw5#njh+&l76cfhrr3rk5'
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['ex-shop.herokuapp.com','127.0.0.1']
+ALLOWED_HOSTS = ['*']
                 
 
 # Application definition
@@ -147,25 +147,22 @@ USE_TZ = True
 
 
 
-STATIC_URL = '/static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # Extra places for collectstatic to find static files.
-# STATICFILES_DIRS = (
-#     os.path.join(BASE_DIR, 'static'),
-# )
+# STATICFILES_DIRS = [
+#      os.path.join(BASE_DIR, 'static'),
+#  ]
 
 
-STATIC_URL = '/static/'
 MEDIA_URL = '/images/'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 LOGIN_URL = '/login_alert/'
 
-# STATICFILES_DIRS = [
-#          os.path.join(BASE_DIR, 'static')
-#  ]
 
+STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images')
-STATIC_ROOT = "/Users/kuba1/OneDrive/Pulpit/portfolio/static/"
+
 
 
 

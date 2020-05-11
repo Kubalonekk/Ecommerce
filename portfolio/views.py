@@ -70,7 +70,6 @@ def create_ref_code():
 
 
 def item_list(request):
-
     items = Item.objects.all().order_by('title')
     MyFilter = ItemFilter(request.GET, queryset=items)
     items = MyFilter.qs
@@ -174,126 +173,132 @@ def ilosc(request):
         iloscform = IloscForm()
 
 
-@login_required(login_url='/accounts/login/')
+
 def add_to_cart(request, pk):
-    item = get_object_or_404(Item, id=pk)
-    if item.size == True:
-        func = rozmiar(request, pk)
-        qs_ilosc = item.itemwariant_set.get(item=item, title=func)
-        if qs_ilosc.ilosc <= 0:
-            messages.info(request,"Przepraszam, przedmiot aktualnie jest niedostępny")
-            return redirect('item_detail', pk)
-        else:
-            pass
-        order_item, created = OrderItem.objects.get_or_create(
-                    item=item,
-                    user=request.user,
-                    ordered=False,
-                    rozmiar = func,
-                    ) # tworzymy OrderItem przypisujemy item pobrany wyzej, uzytkownika ktory jest wlasnie zalogowany a takze ustawiamy Ordered false
-        if created:
-            qs = item.itemwariant_set.get(item=item, title=func)
-            try:    
-                qs.ilosc -= ilosc(request)
-            except:
-                messages.info(request, "Ilosc nie może być wartością ujemną")
-                order_item.delete()
+    if request.user.is_authenticated:
+        item = get_object_or_404(Item, id=pk)
+        if item.size == True:
+            func = rozmiar(request, pk)
+            qs_ilosc = item.itemwariant_set.get(item=item, title=func)
+            if qs_ilosc.ilosc <= 0:
+                messages.info(request,"Przepraszam, przedmiot aktualnie jest niedostępny")
                 return redirect('item_detail', pk)
-            if qs.ilosc < 0:
-                messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
-                order_item.delete()
-                return redirect('item_detail',pk )
             else:
                 pass
-            order_item.quantity = ilosc(request)
-            order_item.save()
-            qs.save()
-        else:
-            # order_item.quantity = ilosc(request)
-            # order_item.save()
-            pass
-        order_qs = Order.objects.filter(user=request.user, ordered=False) # sprawdzamy czy zamowienie juz istnieje.
-    else:
-        if item.ilosc <= 0:
-            messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
-            return redirect('item_detail', pk)
-        else:
-            pass
-        order_item, created = OrderItem.objects.get_or_create(
-                    item=item,
-                    user=request.user,
-                    ordered=False,
-                    ) # tworzymy OrderItem przypisujemy item pobrany wyzej, uzytkownika ktory jest wlasnie zalogowany a takze ustawiamy Ordered false
-        if created:
-            try:    
-                item.ilosc -= ilosc(request)
-            except:
-                messages.info(request, "Ilosc nie może być wartością ujemną")
-                order_item.delete()
-                return redirect('item_detail', pk)
-            if item.ilosc < 0:
-                messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
-                order_item.delete()
-                return redirect('item_detail',pk )
-            item.save()
-            order_item.quantity = ilosc(request)
-            order_item.save()
-            
-        else:
-            # order_item.quantity = ilosc(request)
-            # order_item.save()
-            pass
-    order_qs = Order.objects.filter(user=request.user, ordered=False) # sprawdzamy czy zamowienie juz istnieje.
-    if order_qs.exists(): # jesli istnieje do przypisujemy je do zmiennej order
-        order = order_qs[0] # pobranie pierwszego wyinku czyli zamowienia
-        if item.size == True:
-            if order.items.filter(item__id=item.id, rozmiar=func).exists(): # sprawdzenie czy w  OrderItem  jest juz przedmiot ktory bedziemy dodawawc ponownie po to aby po wcisnieciu przycisu dodaj do koszyka, zwiekszyla sie ilosc 
+            order_item, created = OrderItem.objects.get_or_create(
+                        item=item,
+                        user=request.user,
+                        ordered=False,
+                        rozmiar = func,
+                        ) # tworzymy OrderItem przypisujemy item pobrany wyzej, uzytkownika ktory jest wlasnie zalogowany a takze ustawiamy Ordered false
+            if created:
                 qs = item.itemwariant_set.get(item=item, title=func)
                 try:    
                     qs.ilosc -= ilosc(request)
                 except:
                     messages.info(request, "Ilosc nie może być wartością ujemną")
-                    return redirect('item_detail', pk) 
+                    order_item.delete()
+                    return redirect('item_detail', pk)
                 if qs.ilosc < 0:
                     messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
+                    order_item.delete()
                     return redirect('item_detail',pk )
                 else:
                     pass
-                qs.save()
-                order_item.quantity += ilosc(request)  
+                order_item.quantity = ilosc(request)
                 order_item.save()
-                messages.info(request,"Ilosc przedmiotow zostala zwiekszona")
+                qs.save()
             else:
-                order.items.add(order_item)
-                messages.info(request,"Przedmiot zostal dodany do koszyka")
+                # order_item.quantity = ilosc(request)
+                # order_item.save()
+                pass
+            order_qs = Order.objects.filter(user=request.user, ordered=False) # sprawdzamy czy zamowienie juz istnieje.
         else:
-            if order.items.filter(item__id=item.id).exists(): # sprawdzenie czy w  OrderItem  jest juz przedmiot ktory bedziemy dodawawc ponownie po to aby po wcisnieciu przycisu dodaj do koszyka, zwiekszyla sie ilosc
-                try:
+            if item.ilosc <= 0:
+                messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
+                return redirect('item_detail', pk)
+            else:
+                pass
+            order_item, created = OrderItem.objects.get_or_create(
+                        item=item,
+                        user=request.user,
+                        ordered=False,
+                        ) # tworzymy OrderItem przypisujemy item pobrany wyzej, uzytkownika ktory jest wlasnie zalogowany a takze ustawiamy Ordered false
+            if created:
+                try:    
                     item.ilosc -= ilosc(request)
                 except:
                     messages.info(request, "Ilosc nie może być wartością ujemną")
-                    return redirect('item_detail', pk) 
-                if item.ilosc <= 0:
-                    messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
+                    order_item.delete()
                     return redirect('item_detail', pk)
-                else:
-                    pass
-                order_item.quantity += ilosc(request) # dodanie kolejnego zamowienia
+                if item.ilosc < 0:
+                    messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
+                    order_item.delete()
+                    return redirect('item_detail',pk )
                 item.save()
+                order_item.quantity = ilosc(request)
                 order_item.save()
-                messages.info(request,"Ilosc przedmiotow zostala zwiekszona")
+                
             else:
-                order.items.add(order_item)
-                messages.info(request,"Przedmiot zostal dodany do koszyka")
-    else: # jesli nie istnieje to tworzymy nowe zamowienie
-        ordered_date = timezone.now()
-        order = Order.objects.create(user=request.user, ordered_date=ordered_date)
-        order.items.add(order_item)
-        messages.info(request,"Przedmiot zostal dodany do koszyka")
-        return redirect('item_detail', pk)
-    
-    
-    return redirect('item_detail', pk)
+                # order_item.quantity = ilosc(request)
+                # order_item.save()
+                pass
+        order_qs = Order.objects.filter(user=request.user, ordered=False) # sprawdzamy czy zamowienie juz istnieje.
+        if order_qs.exists(): # jesli istnieje do przypisujemy je do zmiennej order
+            order = order_qs[0] # pobranie pierwszego wyinku czyli zamowienia
+            if item.size == True:
+                if order.items.filter(item__id=item.id, rozmiar=func).exists(): # sprawdzenie czy w  OrderItem  jest juz przedmiot ktory bedziemy dodawawc ponownie po to aby po wcisnieciu przycisu dodaj do koszyka, zwiekszyla sie ilosc 
+                    qs = item.itemwariant_set.get(item=item, title=func)
+                    try:    
+                        qs.ilosc -= ilosc(request)
+                    except:
+                        messages.info(request, "Ilosc nie może być wartością ujemną")
+                        return redirect('item_detail', pk) 
+                    if qs.ilosc < 0:
+                        messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
+                        return redirect('item_detail',pk )
+                    else:
+                        pass
+                    qs.save()
+                    order_item.quantity += ilosc(request)  
+                    order_item.save()
+                    messages.info(request,"Ilosc przedmiotow zostala zwiekszona")
+                else:
+                    order.items.add(order_item)
+                    messages.info(request,"Przedmiot zostal dodany do koszyka")
+            else:
+                if order.items.filter(item__id=item.id).exists(): # sprawdzenie czy w  OrderItem  jest juz przedmiot ktory bedziemy dodawawc ponownie po to aby po wcisnieciu przycisu dodaj do koszyka, zwiekszyla sie ilosc
+                    try:
+                        item.ilosc -= ilosc(request)
+                    except:
+                        messages.info(request, "Ilosc nie może być wartością ujemną")
+                        return redirect('item_detail', pk) 
+                    if item.ilosc <= 0:
+                        messages.info(request,"Przepraszamy nie mam dostępnych" + ' ' + str(ilosc(request)) + ' ' + "sztuk towaru. Kup mniejszą ilość lub skontaktuj się z nami za pomocą formularza kontaktowego")
+                        return redirect('item_detail', pk)
+                    else:
+                        pass
+                    order_item.quantity += ilosc(request) # dodanie kolejnego zamowienia
+                    item.save()
+                    order_item.save()
+                    messages.info(request,"Ilosc przedmiotow zostala zwiekszona")
+                else:
+                    order.items.add(order_item)
+                    messages.info(request,"Przedmiot zostal dodany do koszyka")
+        else: # jesli nie istnieje to tworzymy nowe zamowienie
+            ordered_date = timezone.now()
+            order = Order.objects.create(user=request.user, ordered_date=ordered_date)
+            order.items.add(order_item)
+            messages.info(request,"Przedmiot zostal dodany do koszyka")
+            return redirect('item_detail', pk)
+    else:
+        try:
+            session_id = request.session['cart_id'] # próba pobrania sesji, jeśli nie istnieje to ją tworzymy
+        except:
+            new_cart = Cart()
+            new_cart.save()
+            request.sesson['cart_id'] = new_cart.id
+            session_id = new_cart.id
 
 
 @login_required(login_url='/accounts/login/')

@@ -1,4 +1,4 @@
-#!c:\users\kuba1\onedrive\pulpit\portfolio\11_env\scripts\python.exe
+#!c:\users\kuba\desktop\ecommerce\11_env\scripts\python.exe
 
 # $Id: rst2xetex.py 7847 2015-03-17 17:30:47Z milde $
 # Author: Guenter Milde

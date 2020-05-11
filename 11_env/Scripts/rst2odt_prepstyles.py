@@ -1,4 +1,4 @@
-#!c:\users\kuba1\onedrive\pulpit\portfolio\11_env\scripts\python.exe
+#!c:\users\kuba\desktop\ecommerce\11_env\scripts\python.exe
 
 # $Id: rst2odt_prepstyles.py 5839 2009-01-07 19:09:28Z dkuhlman $
 # Author: Dave Kuhlman <dkuhlman@rexx.com>

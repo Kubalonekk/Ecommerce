@@ -1,4 +1,4 @@
-#!c:\users\kuba1\onedrive\pulpit\portfolio\11_env\scripts\python.exe
+#!c:\users\kuba\desktop\ecommerce\11_env\scripts\python.exe
 # -*- coding: utf8 -*-
 # :Copyright: © 2015 Günter Milde.
 # :License: Released under the terms of the `2-Clause BSD license`_, in short:

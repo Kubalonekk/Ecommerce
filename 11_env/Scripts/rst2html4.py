@@ -1,4 +1,4 @@
-#!c:\users\kuba1\onedrive\pulpit\portfolio\11_env\scripts\python.exe
+#!c:\users\kuba\desktop\ecommerce\11_env\scripts\python.exe
 
 # $Id: rst2html4.py 7994 2016-12-10 17:41:45Z milde $
 # Author: David Goodger <goodger@python.org>

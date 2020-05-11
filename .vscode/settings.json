@@ -6,4 +6,11 @@
     ],
     "python.formatting.provider": "yapf",
     "git.ignoreLimitWarning": true,
+    "editor.fontSize": 19,
+    // "python.terminal.activateEnvironment": true
+
+
+
+
+
 }

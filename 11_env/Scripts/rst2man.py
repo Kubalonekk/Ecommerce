@@ -1,4 +1,4 @@
-#!c:\users\kuba1\onedrive\pulpit\portfolio\11_env\scripts\python.exe
+#!c:\users\kuba\desktop\ecommerce\11_env\scripts\python.exe
 
 # Author: 
 # Contact: grubert@users.sf.net
